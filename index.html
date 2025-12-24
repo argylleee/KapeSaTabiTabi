@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Kape sa Tabi-tabi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="icon" type="image/png" href="logo only.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div id="interface">
+    <header>
+      <aside id="sidebar">
+        <section class="search">
+          <span id="menu" class="material-symbols-outlined">menu</span>
+          <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search any city or place..."/>
+            <span id="searchBtn" class="material-symbols-outlined">search</span>
+            <span class="divider"></span>
+            <button id="locateBtn" type="button">
+              <span class="material-symbols-outlined">my_location</span>
+            </button>
+          </div>
+        </section>
+        <section id="cafeList"></section>
+      </aside>
+      <section id="filters">
+        <button id="Wheelchair" type="button">
+          <span class="material-symbols-outlined">accessible</span>
+          Wheelchair Access
+        </button>
+        <button id="OpenHours" type="button">
+          <span class="material-symbols-outlined">schedule</span>
+          Business Hours
+        </button>
+        <button id="OutdoorSeating" type="button">
+          <span class="material-symbols-outlined">deck</span>
+          Outdoor Seating
+        </button>
+        <button id="Smoking" type="button">
+          <span class="material-symbols-outlined">smoking_rooms</span>
+          Smoking Area
+        </button>
+        <button id="Toilet" type="button">
+          <span class="material-symbols-outlined">wc</span>
+          Toilet Available
+        </button>
+        <button id="Card" type="button">
+          <span class="material-symbols-outlined">payment</span>
+          Accepts Cards
+        </button>
+      </section>
+    </header>
+
+    <footer>
+      <div class="web-title">
+        <h1>Kape sa Tabi-tabi</h1>
+        <p>Your local café finder.</p>
+      </div>
+      <div class="credits">
+        <p>Developed by Aldrei Justin Santua</p>
+      </div>
+    </footer>
+
+    <main id="map"></main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+  <script src="app.js"></script>
+
+</body>
+
+</html>
