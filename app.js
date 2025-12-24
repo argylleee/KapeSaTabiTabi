@@ -23,6 +23,7 @@ const menu = document.getElementById("menu");
 const searchInput = document.getElementById("searchInput");
 const searchBtn = document.getElementById("searchBtn");
 const locateBtn = document.getElementById("locateBtn");
+const loadingScreen = document.getElementById("loadingScreen");
 
 // filter elements
 const Wheelchair = document.getElementById("Wheelchair");
@@ -98,9 +99,18 @@ menu.addEventListener("click", () => {
 });
 
 // set current location (when location access granted)
-function setLocation(lat, lon, zoom = false) {
+function setLocation(lat, lon, zoom = false, isManual = false) {
   currentLat = lat;
   currentLon = lon;
+
+  if (isManual) {
+    isManualPin = true;
+  }
+
+  // Preserve routing to cafe if active
+  const wasRoutedToCafe = lastRoutedLat && lastRoutedLon;
+  const cachedCafeLat = lastRoutedLat;
+  const cachedCafeLon = lastRoutedLon;
 
   if (locationMarker) map.removeLayer(locationMarker);
 
@@ -116,6 +126,12 @@ function setLocation(lat, lon, zoom = false) {
   if (zoom) map.setView([lat, lon], 20);
 
   loadCafes();
+  
+  if (wasRoutedToCafe) {
+    setTimeout(() => {
+      routeTo(cachedCafeLat, cachedCafeLon);
+    }, 500);
+  }
 }
 
 // pin location on map click (manual)
@@ -158,7 +174,7 @@ map.on("dragend", () => {
 });
 
 // search location
-searchBtn.addEventListener("click", async () => {
+async function performSearch() {
   const query = searchInput.value.trim();
   if (!query) return alert("Please enter a location.");
 
@@ -173,7 +189,15 @@ searchBtn.addEventListener("click", async () => {
   const data = await res.json();
   if (!data.length) return alert("Location not found.");
 
-  setLocation(parseFloat(data[0].lat), parseFloat(data[0].lon), true);
+  setLocation(parseFloat(data[0].lat), parseFloat(data[0].lon), true, true);
+}
+
+searchBtn.addEventListener("click", performSearch);
+
+searchInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    performSearch();
+  }
 });
 
 // use my location button
@@ -312,6 +336,21 @@ function displayCafes(cafes) {
       : "No cafes found in this area.";
     
     cafeList.innerHTML = `<p style="padding: 12px; text-align: center; color: var(--primary-color);">${emptyMessage}</p>`;
+  }
+  
+  if (cafeList && !cafeList.classList.contains("active")) {
+    cafeList.classList.add("opening");
+    cafeList.classList.add("active");
+    cafeList.classList.remove("closing");
+    setTimeout(() => cafeList.classList.remove("opening"), 300);
+  }
+  
+  hideLoadingScreen();
+}
+
+function hideLoadingScreen() {
+  if (loadingScreen) {
+    loadingScreen.classList.add("hidden");
   }
 }
 
