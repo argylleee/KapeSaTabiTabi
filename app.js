@@ -24,6 +24,8 @@ const searchInput = document.getElementById("searchInput");
 const searchBtn = document.getElementById("searchBtn");
 const locateBtn = document.getElementById("locateBtn");
 const loadingScreen = document.getElementById("loadingScreen");
+const cafeSearchInput = document.getElementById("cafeSearchInput");
+const cafeSearchSection = document.querySelector(".cafe-search");
 
 // filter elements
 const Wheelchair = document.getElementById("Wheelchair");
@@ -42,6 +44,31 @@ const filterState = {
   toilet: false,
   card: false
 };
+
+// Store all fetched cafes for filtering
+let allCafes = [];
+
+// Cafe search filter
+function filterCafes(searchTerm) {
+  const term = searchTerm.toLowerCase();
+  const cafeCards = document.querySelectorAll(".cafe-card");
+  
+  cafeCards.forEach(card => {
+    const cafeName = card.querySelector("h4").textContent.toLowerCase();
+    if (cafeName.includes(term)) {
+      card.style.display = "block";
+    } else {
+      card.style.display = "none";
+    }
+  });
+}
+
+// Cafe search input listener
+if (cafeSearchInput) {
+  cafeSearchInput.addEventListener("input", (e) => {
+    filterCafes(e.target.value);
+  });
+}
 
 // initial location fetch
 navigator.geolocation.getCurrentPosition(
@@ -86,11 +113,13 @@ menu.addEventListener("click", () => {
     cafeList.classList.add("opening");
     cafeList.classList.add("active");
     cafeList.classList.remove("closing");
+    cafeSearchSection.classList.add("active");
    
     setTimeout(() => cafeList.classList.remove("opening"), 300);
   } else {
     cafeList.classList.add("closing");
     cafeList.classList.remove("opening");
+    cafeSearchSection.classList.remove("active");
     setTimeout(() => {
       cafeList.classList.remove("active");
       cafeList.classList.remove("closing");
@@ -342,6 +371,8 @@ function displayCafes(cafes) {
     cafeList.classList.add("opening");
     cafeList.classList.add("active");
     cafeList.classList.remove("closing");
+    cafeSearchSection.classList.add("active");
+    if (cafeSearchInput) cafeSearchInput.value = "";
     setTimeout(() => cafeList.classList.remove("opening"), 300);
   }
   
