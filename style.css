@@ -9,6 +9,7 @@
 
   --text-size: 14px;
   --h1-size: 18px;
+  --h2-size: 15px;
   --p-size: 12px;
 
   --button-text-size: 14px;
@@ -42,12 +43,18 @@ body {
   margin: 0;
   font-family: var(--font-google-sans);
   background: var(--secondary-color);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
 }
 
 #interface {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
 }
 
 button,
@@ -63,6 +70,9 @@ header {
   background: transparent;
   position: relative;
   z-index: 10;
+  flex-wrap: nowrap;
+  gap: 12px;
+  align-items: center;
 }
 
 .loading-screen {
@@ -140,6 +150,9 @@ header {
   padding: 13px 20px;
   border-radius: var(--border-radius);
   background: var(--secondary-color);
+  flex-shrink: 1;
+  min-width: 0;
+  flex-wrap: nowrap;
 }
 
 #menu:hover {
@@ -220,6 +233,57 @@ header {
   color: var(--secondary-color);
 }
 
+.filters-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+}
+
+.filters-container::before {
+  content: 'Filters:';
+  font-size: var(--button-text-size);
+  font-weight: var(--button-weight);
+  color: var(--primary-color);
+  padding-left: 15px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.filter-scroll-btn {
+  border: none;
+  outline: none;
+  background: var(--secondary-color);
+  color: var(--primary-color);
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 160ms ease, background-color 160ms ease, color 160ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.filter-scroll-btn:hover {
+  background: var(--primary-color);
+  color: var(--secondary-color);
+  transform: scale(1.05);
+}
+
+.filter-scroll-btn:hover .material-symbols-outlined {
+  color: var(--secondary-color);
+}
+
+.filter-scroll-btn.hidden {
+  display: none;
+}
+
 #filters {
   font-size: var(--button-text-size);
   font-weight: var(--button-weight);
@@ -227,7 +291,12 @@ header {
   display: flex;
   align-items: center;
   gap: var(--section-gap);
-  padding: 10px 25px;
+  padding: 10px 15px;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  flex: 1;
+  white-space: nowrap;
+  scroll-snap-type: x proximity;
 }
 
 #filters button {
@@ -238,6 +307,9 @@ header {
   padding: 5px 10px;
   border-radius: var(--border-radius);
   transition: transform 160ms ease, background-color 160ms ease, color 160ms ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+  scroll-snap-align: start;
 }
 
 #filters button:hover {
@@ -288,11 +360,11 @@ footer .credits {
   flex: 1;
   cursor: drag;
   min-height: 0;
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   z-index: 1;
 }
 
@@ -305,11 +377,11 @@ footer .credits {
 }
 
 .leaflet-top {
-  top: 86vh;
+  top: 75vh;
 }
 
 .leaflet-left {
-  left: 188vh;
+  left: 186vh;
 }
 
 .leaflet-control-zoom {
@@ -332,6 +404,121 @@ footer .credits {
   background: var(--primary-color);
   color: var(--secondary-color);
   transform: scale(1.00);
+}
+
+.leaflet-routing-container {
+  background: var(--secondary-color);
+  color: var(--primary-color);
+  font-family: var(--font-google-sans);
+  border: none;
+  max-width: 350px;
+  padding: 10px;
+  z-index: 9998;
+  position: fixed;
+  right: 8px;
+  top: 105px;
+  bottom: 10px;
+  max-height: calc(100vh - 340px);
+  overflow-y: auto;
+  border-radius: var(--pop-up-radius);
+  transition: all 300ms ease;
+}
+
+.leaflet-routing-container.leaflet-routing-container-hidden {
+  max-width: 36px;
+  max-height: 36px;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--secondary-color);
+  border-radius: var(--pop-up-radius);
+}
+
+.leaflet-routing-container.leaflet-routing-container-hidden > *:not(.leaflet-routing-close) {
+  display: none;
+}
+
+.leaflet-routing-container.leaflet-routing-container-hidden::before {
+  content: 'directions';
+  font-family: 'Material Symbols Outlined';
+  font-size: 24px;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.leaflet-routing-container.leaflet-routing-container-hidden:hover {
+  background: var(--accent-color);
+  color: var(--secondary-color);
+}
+
+.leaflet-routing-container.leaflet-routing-container-hidden:hover::before {
+  color: var(--secondary-color);
+}
+
+.leaflet-routing-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--secondary-color);
+  color: var(--primary-color);
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: var(--h2-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 160ms ease, background-color 160ms ease;
+  z-index: 1001;
+  padding: 0;
+}
+
+.leaflet-routing-close:hover {
+  background: var(--accent-color);
+  color: var(--secondary-color);
+  transform: scale(1.05);
+}
+
+.leaflet-top.leaflet-right {
+  top: 150px;    
+  right: 5px;
+}
+
+.leaflet-routing-container:hover {
+  cursor: pointer;
+  background-color: var(--background-color);
+  color: var(--secondary-color);
+  border: none;
+}
+
+.leaflet-routing-header {
+  color: var(--primary-color);
+  font-size: var(--h1-size);
+  font-weight: var(--font-semibold);
+}
+
+.leaflet-routing-instruction {
+  color: var(--primary-color);
+  font-size: var(--p-size);
+}
+
+.leaflet-routing-alternatives {
+  background: var(--secondary-color);
+  overflow-y: auto;
+}
+
+.leaflet-routing-alt:hover {
+  color: var(--primary-color);
 }
 
 .leaflet-popup-content-wrapper {
@@ -553,3 +740,347 @@ footer .credits {
   background: var(--secondary-color);
   color: var(--primary-color);
 }
+
+.desktop-filters {
+  display: flex;
+}
+
+@media screen and (max-width: 940px) {
+  footer {
+    align-items: flex-start;
+    text-align: left;
+    /* bottom: 15px; */
+  }
+
+  footer .web-title h1 {
+    font-size: var(--h2-size);
+  }
+
+  footer .web-title p {
+    position: relative;
+    color: transparent;
+    /* min-height: 22px; */
+  }
+  
+  footer .web-title p::after {
+    content: "Your local café finder by Aldrei Justin Santua";
+    color: var(--primary-color);
+    position: absolute;
+    left: 0;
+    top: 0;
+    white-space: nowrap;
+  }
+
+  footer .credits {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 765px) {
+  header {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .loading-logo {
+    height: 150px;
+  }
+
+  .loading-container p {
+    font-size: var(--h2-size);
+  }
+  
+  .search {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
+  .filters-container {
+    flex: 0 0 360px;
+    width: 360px;
+    max-width: calc(100% - 30px);
+  }
+  
+  #filters {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .cafe-search {
+    top: 130px;
+    left: 15px;
+    width: min(320px, calc(100% - 52px));
+    max-width: 320px;
+  }
+
+  .cafe-search input {
+    width: 270px;
+  }
+
+  #cafeList {
+    top: 185px;
+    left: 20px;
+    width: min(320px, calc(100% - 52px));
+    max-width: 320px;
+    max-height: 480px;
+  }
+
+  footer {
+    align-items: flex-start;
+    text-align: left;
+    bottom: 15px;
+  }
+
+  footer .web-title h1 {
+    font-size: var(--h2-size);
+  }
+
+  footer .web-title p {
+    position: relative;
+    color: transparent;
+    min-height: 10px;
+  }
+  
+  footer .web-title p::after {
+    content: "Your local café finder by Aldrei Justin Santua";
+    color: var(--primary-color);
+    position: absolute;
+    left: 0;
+    top: 0;
+    white-space: nowrap;
+  }
+
+  footer .credits {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 525px) {
+  footer {
+    align-items: center;
+    text-align: center;
+    bottom: 15px;
+  }
+
+  footer .web-title {
+    width: 100%;
+    padding-left: 0;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  footer .web-title h1 {
+    font-size: var(--h2-size);
+  }
+
+  footer .web-title p {
+    position: relative;
+    color: transparent;
+    min-height: 10px;
+    text-align: center;
+  }
+  
+  footer .web-title p::after {
+    content: "Your local café finder by Aldrei Justin Santua";
+    color: var(--primary-color);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+    white-space: nowrap;
+  }
+
+  footer .credits {
+    display: none;
+  }
+
+  .leaflet-control-attribution {
+    display: none !important;
+  }
+}
+
+@media screen and (max-width: 410px) {
+  header {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .loading-logo {
+    height: 120px;
+  }
+
+  .loading-container {
+    gap: 15px;
+  }
+
+  .loading-container p {
+    font-size: 16px;
+  }
+
+  .search {
+    flex: 0 0 calc(100% - 20px);
+    max-width: calc(100% - 20px);
+    padding: 12px 18px;
+    margin: 0 auto;
+  }
+
+  .filters-container {
+    width: calc(100% - 20px);
+    max-width: 100%;
+    flex: 0 0 calc(100% - 20px);
+    margin: 0 auto;
+  }
+
+  #filters {
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+  }
+
+  #filters button {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .cafe-search {
+    top: 135px;
+    left: 10px;
+    width: calc(100% - 40px);
+    max-width: calc(100% - 40px);
+  }
+
+  .cafe-search input {
+    width: calc(100% - 50px);
+    font-size: 13px;
+  }
+
+  #cafeList {
+    top: 190px;
+    left: 10px;
+    width: calc(100% - 40px);
+    max-width: calc(100% - 40px);
+    max-height: 480px;
+  }
+}
+
+@media screen and (max-width: 395px) {
+  header {
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .loading-logo {
+    height: 100px;
+  }
+
+  .loading-container {
+    gap: 12px;
+    padding: 15px;
+  }
+
+  .loading-container p {
+    font-size: 14px;
+  }
+
+  #sidebar {
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  .search {
+    flex: 0 0 100%;
+    width: 100%;
+    padding: 8px 10px;
+    gap: 8px;
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  .search-bar {
+    flex: 1;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .search-bar input {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+  }
+
+  .search-bar button {
+    padding: 0 4px;
+    font-size: 16px;
+  }
+
+  .divider {
+    display: none;
+  }
+
+  #menu {
+    font-size: 20px;
+  }
+
+  .filters-container {
+    width: calc(100% - 20px);
+    max-width: 100%;
+    flex: 0 0 calc(100% - 20px);
+    margin: 0 auto;
+  }
+
+  #filters button {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .cafe-search {
+    top: 135px;
+    left: 10px;
+    width: calc(100% - 40px);
+    max-width: calc(100% - 40px);
+  }
+
+  .cafe-search input {
+    width: calc(100% - 50px);
+    font-size: 13px;
+  }
+
+  #cafeList {
+    top: 190px;
+    left: 10px;
+    width: calc(100% - 40px);
+    max-width: calc(100% - 40px);
+    max-height: 470px;
+  }
+
+  #map {
+    width: 100%;
+    height: 100%;
+  }
+
+  footer {
+    padding: 8px;
+    bottom: 8px;
+  }
+}
+
+/* Landscape mobile orientation */
+/* @media screen and (max-height: 500px) and (orientation: landscape) {
+  #cafeList {
+    max-height: 50vh;
+  }
+  
+  footer {
+    position: relative;
+    padding: 5px;
+  }
+} */

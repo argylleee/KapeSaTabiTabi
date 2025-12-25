@@ -16,6 +16,7 @@ let lastRoutedLon = null;
 let watchPositionId = null;
 let activeCafeCard = null;
 let isManualPin = false;
+let routingDirectionsVisible = false;
 
 // ui elements
 const cafeList = document.getElementById("cafeList");
@@ -45,10 +46,8 @@ const filterState = {
   card: false
 };
 
-// Store all fetched cafes for filtering
 let allCafes = [];
 
-// Cafe search filter
 function filterCafes(searchTerm) {
   const term = searchTerm.toLowerCase();
   const cafeCards = document.querySelectorAll(".cafe-card");
@@ -63,7 +62,6 @@ function filterCafes(searchTerm) {
   });
 }
 
-// Cafe search input listener
 if (cafeSearchInput) {
   cafeSearchInput.addEventListener("input", (e) => {
     filterCafes(e.target.value);
@@ -144,7 +142,6 @@ function setLocation(lat, lon, zoom = false, isManual = false) {
     isManualPin = true;
   }
 
-  // Preserve routing to cafe if active
   const wasRoutedToCafe = lastRoutedLat && lastRoutedLon;
   const cachedCafeLat = lastRoutedLat;
   const cachedCafeLon = lastRoutedLon;
@@ -426,8 +423,49 @@ window.routeTo = function(lat, lon) {
       L.latLng(routeFromLat, routeFromLon),
       L.latLng(lat, lon),
     ],
-    show: false,
+    router: L.Routing.osrmv1({
+      serviceUrl: 'https://router.project-osrm.org/route/v1'
+    }),
+    show: routingDirectionsVisible,
+    lineOptions: {
+      styles: [{ color: 'var(--primary-color)', opacity: 0.8, weight: 5 }]
+    }
+  }).on('routingerror', function(e) {
+    console.error('Routing error:', e);
+    alert('Could not calculate route. Distance might be too far or no route available.');
   }).addTo(map);
+
+  setTimeout(() => {
+    const routingContainer = document.querySelector('.leaflet-routing-container');
+    if (routingContainer) {
+      if (!routingDirectionsVisible) {
+        routingContainer.classList.add('leaflet-routing-container-hidden');
+      } else {
+        routingContainer.classList.remove('leaflet-routing-container-hidden');
+        if (!routingContainer.querySelector('.leaflet-routing-close')) {
+          const closeBtn = document.createElement('button');
+          closeBtn.className = 'leaflet-routing-close';
+          closeBtn.innerHTML = '<span class="material-symbols-outlined">close</span>';
+          closeBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleRoutingDirections();
+          };
+          routingContainer.appendChild(closeBtn);
+        }
+      }
+      
+      if (!routingContainer.dataset.clickHandlerAdded) {
+        routingContainer.addEventListener('click', (e) => {
+          if (routingContainer.classList.contains('leaflet-routing-container-hidden')) {
+            e.stopPropagation();
+            e.preventDefault();
+            toggleRoutingDirections();
+          }
+        });
+        routingContainer.dataset.clickHandlerAdded = 'true';
+      }
+    }
+  }, 300);
 };
 
 window.unroute = function() {
@@ -525,4 +563,91 @@ if (Card) {
     Card.classList.toggle("active");
     loadCafes();
   };
+}
+
+// filter scroll buttons
+const filterScrollLeft = document.getElementById("filterScrollLeft");
+const filterScrollRight = document.getElementById("filterScrollRight");
+const filtersContainer = document.getElementById("filters");
+
+function updateFilterScrollButtonVisibility() {
+  if (!filtersContainer) return;
+  
+  const scrollLeft = filtersContainer.scrollLeft;
+  const scrollWidth = filtersContainer.scrollWidth;
+  const clientWidth = filtersContainer.clientWidth;
+  
+  if (filterScrollLeft) {
+    if (scrollLeft === 0) {
+      filterScrollLeft.classList.add("hidden");
+    } else {
+      filterScrollLeft.classList.remove("hidden");
+    }
+  }
+  
+  if (filterScrollRight) {
+    if (scrollLeft + clientWidth >= scrollWidth - 1) {
+      filterScrollRight.classList.add("hidden");
+    } else {
+      filterScrollRight.classList.remove("hidden");
+    }
+  }
+}
+
+if (filterScrollLeft && filtersContainer) {
+  filterScrollLeft.addEventListener("click", () => {
+    filtersContainer.scrollBy({
+      left: -200,
+      behavior: "smooth"
+    });
+    setTimeout(updateFilterScrollButtonVisibility, 300);
+  });
+}
+
+if (filterScrollRight && filtersContainer) {
+  filterScrollRight.addEventListener("click", () => {
+    filtersContainer.scrollBy({
+      left: 200,
+      behavior: "smooth"
+    });
+    setTimeout(updateFilterScrollButtonVisibility, 300);
+  });
+}
+
+if (filtersContainer) {
+  filtersContainer.addEventListener("scroll", updateFilterScrollButtonVisibility);
+
+  setTimeout(updateFilterScrollButtonVisibility, 100);
+}
+
+function toggleRoutingDirections() {
+  routingDirectionsVisible = !routingDirectionsVisible;
+  
+  if (routingControl) {
+    const container = document.querySelector('.leaflet-routing-container');
+    
+    if (routingDirectionsVisible) {
+      routingControl.show();
+      if (container) {
+        container.classList.remove('leaflet-routing-container-hidden');
+        if (!container.querySelector('.leaflet-routing-close')) {
+          const closeBtn = document.createElement('button');
+          closeBtn.className = 'leaflet-routing-close';
+          closeBtn.innerHTML = '<span class="material-symbols-outlined">close</span>';
+          closeBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleRoutingDirections();
+          };
+          container.appendChild(closeBtn);
+        }
+      }
+    } else {
+      routingControl.hide();
+      if (container) {
+        container.classList.add('leaflet-routing-container-hidden');
+        const closeBtn = container.querySelector('.leaflet-routing-close');
+        if (closeBtn) closeBtn.remove();
+      }
+    }
+  }
 }
