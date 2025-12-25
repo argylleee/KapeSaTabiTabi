@@ -113,16 +113,24 @@ menu.addEventListener("click", () => {
     cafeList.classList.add("opening");
     cafeList.classList.add("active");
     cafeList.classList.remove("closing");
+    cafeSearchSection.classList.add("opening");
     cafeSearchSection.classList.add("active");
+    cafeSearchSection.classList.remove("closing");
    
-    setTimeout(() => cafeList.classList.remove("opening"), 300);
+    setTimeout(() => {
+      cafeList.classList.remove("opening");
+      cafeSearchSection.classList.remove("opening");
+    }, 300);
   } else {
     cafeList.classList.add("closing");
     cafeList.classList.remove("opening");
-    cafeSearchSection.classList.remove("active");
+    cafeSearchSection.classList.add("closing");
+    cafeSearchSection.classList.remove("opening");
     setTimeout(() => {
       cafeList.classList.remove("active");
       cafeList.classList.remove("closing");
+      cafeSearchSection.classList.remove("active");
+      cafeSearchSection.classList.remove("closing");
     }, 300);
   }
 });
