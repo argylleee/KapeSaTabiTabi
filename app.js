@@ -48,41 +48,56 @@ const filterState = {
 
 let allCafes = [];
 
+function isMobileScreen() {
+  return window.innerWidth <= 410;
+}
+
 let isDragging = false;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
 
-setTimeout(() => {
-  const routingContainer = document.querySelector('.leaflet-routing-container');
-  if (routingContainer) {
-    routingContainer.addEventListener('mousedown', startDrag);
-    routingContainer.addEventListener('touchstart', startDrag);
+setInterval(() => {
+  const container = document.querySelector('.leaflet-routing-container');
+  if (container && !container.dataset.clickSetup) {
+    container.onclick = (e) => {
+      if (container.classList.contains('leaflet-routing-container-hidden')) {
+        toggleRoutingDirections();
+      }
+    };
+    container.dataset.clickSetup = 'true';
   }
-}, 1000);
+}, 100);
+
+function attachDragListeners() {
+  const routingContainer = document.querySelector('.leaflet-routing-container');
+  if (routingContainer && !routingContainer.dataset.dragHandlerAdded) {
+    routingContainer.addEventListener('pointerdown', startDrag, { capture: false });
+    routingContainer.dataset.dragHandlerAdded = 'true';
+  }
+}
 
 function startDrag(e) {
   const routingContainer = document.querySelector('.leaflet-routing-container');
-  if (!routingContainer.classList.contains('leaflet-routing-container-hidden')) return; // Only drag when hidden
+  if (!isMobileScreen()) return;
+  if (!routingContainer.classList.contains('leaflet-routing-container-hidden')) return;
   
   isDragging = true;
   const rect = routingContainer.getBoundingClientRect();
+  dragOffsetX = e.clientX - rect.left;
+  dragOffsetY = e.clientY - rect.top;
   
-  if (e.touches) {
-    dragOffsetX = e.touches[0].clientX - rect.left;
-    dragOffsetY = e.touches[0].clientY - rect.top;
-  } else {
-    dragOffsetX = e.clientX - rect.left;
-    dragOffsetY = e.clientY - rect.top;
-  }
+  routingContainer.style.transition = 'none';
+  routingContainer.style.zIndex = '99999';
   
-  document.addEventListener('mousemove', drag);
-  document.addEventListener('touchmove', drag);
-  document.addEventListener('mouseup', stopDrag);
-  document.addEventListener('touchend', stopDrag);
+  document.addEventListener('pointermove', drag);
+  document.addEventListener('pointerup', stopDrag);
 }
 
 function drag(e) {
   if (!isDragging) return;
+  
+  e.preventDefault();
+  e.stopPropagation();
   
   const routingContainer = document.querySelector('.leaflet-routing-container');
   let clientX, clientY;
@@ -98,22 +113,26 @@ function drag(e) {
   const newX = clientX - dragOffsetX;
   const newY = clientY - dragOffsetY;
   
-  // Constrain to viewport
   const maxX = window.innerWidth - 56;
   const maxY = window.innerHeight - 56;
   
+  const constrainedX = Math.max(0, Math.min(newX, maxX));
+  const constrainedY = Math.max(0, Math.min(newY, maxY));
+  
+  routingContainer.style.left = constrainedX + 'px';
+  routingContainer.style.top = constrainedY + 'px';
   routingContainer.style.right = 'auto';
-  routingContainer.style.top = 'auto';
-  routingContainer.style.left = Math.max(0, Math.min(newX, maxX)) + 'px';
-  routingContainer.style.top = Math.max(0, Math.min(newY, maxY)) + 'px';
+  routingContainer.style.bottom = 'auto';
 }
 
 function stopDrag() {
   isDragging = false;
-  document.removeEventListener('mousemove', drag);
-  document.removeEventListener('touchmove', drag);
-  document.removeEventListener('mouseup', stopDrag);
-  document.removeEventListener('touchend', stopDrag);
+  const routingContainer = document.querySelector('.leaflet-routing-container');
+  routingContainer.style.transition = 'all 300ms ease';
+  routingContainer.style.zIndex = '99998';
+  
+  document.removeEventListener('pointermove', drag);
+  document.removeEventListener('pointerup', stopDrag);
 }
 
 function filterCafes(searchTerm) {
@@ -143,7 +162,7 @@ navigator.geolocation.getCurrentPosition(
     startRealTimeTracking();
   },
   (error) => {
-    setLocation(14.5995, 120.9842, true); //if location access denied, fallback to Manila
+    setLocation(14.5995, 120.9842, true); // if location access denied, fallback to Manila
   }
 );
 
@@ -174,6 +193,10 @@ function startRealTimeTracking() {
 // sidebar toggle
 menu.addEventListener("click", () => {
   const isActive = cafeList.classList.contains("active");
+  
+  if (!isActive && routingDirectionsVisible && isMobileScreen()) {
+    toggleRoutingDirections();
+  }
   
   if (!isActive) {
     cafeList.classList.add("opening");
@@ -526,12 +549,14 @@ window.routeTo = function(lat, lon) {
         routingContainer.addEventListener('click', (e) => {
           if (routingContainer.classList.contains('leaflet-routing-container-hidden')) {
             e.stopPropagation();
-            e.preventDefault();
             toggleRoutingDirections();
           }
-        });
+        }, { capture: true });
+        
         routingContainer.dataset.clickHandlerAdded = 'true';
       }
+
+      attachDragListeners();
     }
   }, 300);
 };
@@ -591,44 +616,50 @@ function clearCafes() {
 
 // filter refresh
 if (Wheelchair) {
-  Wheelchair.onclick = () => {
+  Wheelchair.onclick = function() {
     filterState.wheelchair = !filterState.wheelchair;
-    Wheelchair.classList.toggle("active");
+    this.classList.toggle("active");
+    this.blur();
     loadCafes();
   };
 }
 if (OpenHours) {
-  OpenHours.onclick = () => {
+  OpenHours.onclick = function() {
     filterState.openHours = !filterState.openHours;
-    OpenHours.classList.toggle("active");
+    this.classList.toggle("active");
+    this.blur();
     loadCafes();
   };
 }
 if (OutdoorSeating) {
-  OutdoorSeating.onclick = () => {
+  OutdoorSeating.onclick = function() {
     filterState.outdoorSeating = !filterState.outdoorSeating;
-    OutdoorSeating.classList.toggle("active");
+    this.classList.toggle("active");
+    this.blur();
     loadCafes();
   };
 }
 if (Smoking) {
-  Smoking.onclick = () => {
+  Smoking.onclick = function() {
     filterState.smoking = !filterState.smoking;
-    Smoking.classList.toggle("active");
+    this.classList.toggle("active");
+    this.blur();
     loadCafes();
   };
 }
 if (Toilet) {
-  Toilet.onclick = () => {
+  Toilet.onclick = function() {
     filterState.toilet = !filterState.toilet;
-    Toilet.classList.toggle("active");
+    this.classList.toggle("active");
+    this.blur();
     loadCafes();
   };
 }
 if (Card) {
-  Card.onclick = () => {
+  Card.onclick = function() {
     filterState.card = !filterState.card;
-    Card.classList.toggle("active");
+    this.classList.toggle("active");
+    this.blur();
     loadCafes();
   };
 }
@@ -690,6 +721,19 @@ if (filtersContainer) {
 
 function toggleRoutingDirections() {
   routingDirectionsVisible = !routingDirectionsVisible;
+  
+  if (routingDirectionsVisible && cafeList.classList.contains("active") && isMobileScreen()) {
+    cafeList.classList.add("closing");
+    cafeList.classList.remove("opening");
+    cafeSearchSection.classList.add("closing");
+    cafeSearchSection.classList.remove("opening");
+    setTimeout(() => {
+      cafeList.classList.remove("active");
+      cafeList.classList.remove("closing");
+      cafeSearchSection.classList.remove("active");
+      cafeSearchSection.classList.remove("closing");
+    }, 300);
+  }
   
   if (routingControl) {
     const container = document.querySelector('.leaflet-routing-container');
