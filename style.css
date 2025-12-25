@@ -947,7 +947,6 @@ footer .credits {
     flex: 0 0 calc(100% - 10px);
     max-width: calc(100% - 10px);
     padding: 12px 9px;
-    margin-top: 30px;
   }
 
   .filters-container {
