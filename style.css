@@ -972,7 +972,7 @@ footer .credits {
   }
 
   .cafe-search {
-    top: 155px;
+    top: 125px;
     left: 5px;
     width: calc(100% - 40px);
     max-width: calc(100% - 40px);
@@ -984,7 +984,7 @@ footer .credits {
   }
 
   #cafeList {
-    top: 195px;
+    top: 170px;
     left: 10px;
     width: calc(100% - 40px);
     max-width: calc(100% - 40px);
