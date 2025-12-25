@@ -48,6 +48,74 @@ const filterState = {
 
 let allCafes = [];
 
+let isDragging = false;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+
+setTimeout(() => {
+  const routingContainer = document.querySelector('.leaflet-routing-container');
+  if (routingContainer) {
+    routingContainer.addEventListener('mousedown', startDrag);
+    routingContainer.addEventListener('touchstart', startDrag);
+  }
+}, 1000);
+
+function startDrag(e) {
+  const routingContainer = document.querySelector('.leaflet-routing-container');
+  if (!routingContainer.classList.contains('leaflet-routing-container-hidden')) return; // Only drag when hidden
+  
+  isDragging = true;
+  const rect = routingContainer.getBoundingClientRect();
+  
+  if (e.touches) {
+    dragOffsetX = e.touches[0].clientX - rect.left;
+    dragOffsetY = e.touches[0].clientY - rect.top;
+  } else {
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+  }
+  
+  document.addEventListener('mousemove', drag);
+  document.addEventListener('touchmove', drag);
+  document.addEventListener('mouseup', stopDrag);
+  document.addEventListener('touchend', stopDrag);
+}
+
+function drag(e) {
+  if (!isDragging) return;
+  
+  const routingContainer = document.querySelector('.leaflet-routing-container');
+  let clientX, clientY;
+  
+  if (e.touches) {
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
+  
+  const newX = clientX - dragOffsetX;
+  const newY = clientY - dragOffsetY;
+  
+  // Constrain to viewport
+  const maxX = window.innerWidth - 56;
+  const maxY = window.innerHeight - 56;
+  
+  routingContainer.style.right = 'auto';
+  routingContainer.style.top = 'auto';
+  routingContainer.style.left = Math.max(0, Math.min(newX, maxX)) + 'px';
+  routingContainer.style.top = Math.max(0, Math.min(newY, maxY)) + 'px';
+}
+
+function stopDrag() {
+  isDragging = false;
+  document.removeEventListener('mousemove', drag);
+  document.removeEventListener('touchmove', drag);
+  document.removeEventListener('mouseup', stopDrag);
+  document.removeEventListener('touchend', stopDrag);
+}
+
 function filterCafes(searchTerm) {
   const term = searchTerm.toLowerCase();
   const cafeCards = document.querySelectorAll(".cafe-card");
