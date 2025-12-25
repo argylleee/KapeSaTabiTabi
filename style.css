@@ -144,7 +144,7 @@ header {
 
 .search {
   display: flex;
-  flex: 1;
+  flex: 0 0 auto;
   align-items: center;
   gap: var(--section-gap);
   padding: 13px 20px;
@@ -241,6 +241,7 @@ header {
   overflow: hidden;
   flex: 1;
   min-width: 0;
+  overflow-x: auto;
 }
 
 .filters-container::before {
@@ -377,7 +378,7 @@ footer .credits {
 }
 
 .leaflet-top {
-  top: 75vh;
+  top: 80vh;
 }
 
 .leaflet-left {
@@ -413,7 +414,7 @@ footer .credits {
   border: none;
   max-width: 350px;
   padding: 10px;
-  z-index: 9998;
+  z-index: 1;
   position: fixed;
   right: 8px;
   top: 105px;
@@ -935,6 +936,10 @@ footer .credits {
     max-width: 100%;
     flex: 0 0 calc(100% - 20px);
     margin: 0 auto;
+  }
+
+  .filter-scroll-btn {
+    display: none !important;
   }
 
   #filters {
