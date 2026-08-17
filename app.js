@@ -1,3 +1,7 @@
+// Referrer-restricted in Google Cloud Console (HTTP referrers + API
+// restriction to Places API (New)) — not treated as a secret.
+const GOOGLE_PLACES_API_KEY = "AIzaSyBaiRriO-TdpHRt5XEGYHRvnMpt0ehDe-g";
+
 // default map
 const map = L.map("map").setView([14.5995, 120.9842], 14);
 
@@ -335,7 +339,24 @@ locateBtn.addEventListener("click", () => {
   );
 });
 
-// load cafes
+// load cafes (Google Places API — see PLACES_FIELD_MASK for what's fetched)
+const PLACES_FIELD_MASK = [
+  "places.id",
+  "places.displayName",
+  "places.formattedAddress",
+  "places.location",
+  "places.rating",
+  "places.userRatingCount",
+  "places.photos",
+  "places.currentOpeningHours.openNow",
+  "places.currentOpeningHours.weekdayDescriptions",
+  "places.accessibilityOptions.wheelchairAccessibleEntrance",
+  "places.outdoorSeating",
+  "places.restroom",
+  "places.paymentOptions.acceptsCreditCards",
+  "places.paymentOptions.acceptsDebitCards"
+].join(",");
+
 async function loadCafes() {
   if (!currentLat || !currentLon) return;
 
@@ -345,7 +366,7 @@ async function loadCafes() {
     cafeList.innerHTML = '<p style="padding: 12px; text-align: center; color: var(--primary-color);">Loading cafes...</p>';
   }
 
-  const cacheKey = `cafes_${currentLat.toFixed(3)}_${currentLon.toFixed(3)}`;
+  const cacheKey = `cafes_places_${currentLat.toFixed(3)}_${currentLon.toFixed(3)}`;
   const cached = localStorage.getItem(cacheKey);
 
   if (cached) {
@@ -358,85 +379,86 @@ async function loadCafes() {
     }
   }
 
-  const query = `
-    [out:json];
-    (
-      node["amenity"="cafe"](around:3000,${currentLat},${currentLon});
-      way["amenity"="cafe"](around:3000,${currentLat},${currentLon});
-    );
-    out center tags;
-  `;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-  // Several public mirrors, tried in order, each with its own timeout, so a
-  // single unreachable/CORS-blocking instance can't hang the app forever —
-  // the original single-mirror call had no error handling at all, which is
-  // why any failure left the list stuck on "Loading cafes..." indefinitely.
-  const OVERPASS_MIRRORS = [
-    "https://overpass-api.de/api/interpreter",
-    "https://overpass.openstreetmap.fr/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter"
-  ];
+  try {
+    const res = await fetch("https://places.googleapis.com/v1/places:searchNearby", {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
+        "X-Goog-FieldMask": PLACES_FIELD_MASK
+      },
+      body: JSON.stringify({
+        includedTypes: ["cafe"],
+        maxResultCount: 20,
+        locationRestriction: {
+          circle: { center: { latitude: currentLat, longitude: currentLon }, radius: 3000.0 }
+        }
+      })
+    });
 
-  for (const endpoint of OVERPASS_MIRRORS) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
-    try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        body: query,
-        signal: controller.signal,
-        referrerPolicy: "no-referrer"
-      });
-      if (!res.ok) throw new Error(`${endpoint} responded ${res.status}`);
-
-      const data = await res.json();
-      localStorage.setItem(cacheKey, JSON.stringify(data.elements));
-      displayCafes(data.elements);
-      return;
-    } catch (err) {
-      console.error(`Overpass mirror ${endpoint} failed:`, err);
-    } finally {
-      clearTimeout(timeoutId);
+    if (!res.ok) throw new Error(`Places API responded ${res.status}`);
+    const data = await res.json();
+    const places = data.places || [];
+    localStorage.setItem(cacheKey, JSON.stringify(places));
+    displayCafes(places);
+  } catch (err) {
+    console.error("Cafe fetch failed:", err);
+    if (cafeList) {
+      cafeList.innerHTML = '<p style="padding: 12px; text-align: center; color: var(--primary-color);">Could not load cafes. Check your connection.</p>';
     }
-  }
-
-  if (cafeList) {
-    cafeList.innerHTML = '<p style="padding: 12px; text-align: center; color: var(--primary-color);">Could not load cafes. Check your connection.</p>';
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
 // display cafes
+function placePhotoUrl(place, maxHeightPx = 200) {
+  const photo = place.photos && place.photos[0];
+  if (!photo) return null;
+  return `https://places.googleapis.com/v1/${photo.name}/media?maxHeightPx=${maxHeightPx}&key=${GOOGLE_PLACES_API_KEY}`;
+}
+
 function displayCafes(cafes) {
   let cafeCount = 0;
-  
+
   if (cafeList) {
     cafeList.innerHTML = "";
   }
-  
-  cafes.forEach(cafe => {
-    const lat = cafe.lat || cafe.center?.lat;
-    const lon = cafe.lon || cafe.center?.lon;
+
+  cafes.forEach(place => {
+    const lat = place.location?.latitude;
+    const lon = place.location?.longitude;
     if (!lat || !lon) return;
 
-    const tags = cafe.tags || {};
+    // Note: Google Places has no "smoking area" field — that filter is a
+    // no-op here (never excludes results) since there's no data to check.
+    if (filterState.wheelchair && place.accessibilityOptions?.wheelchairAccessibleEntrance !== true) return;
+    if (filterState.openHours && place.currentOpeningHours?.openNow !== true) return;
+    if (filterState.outdoorSeating && place.outdoorSeating !== true) return;
+    if (filterState.toilet && place.restroom !== true) return;
+    if (filterState.card && place.paymentOptions?.acceptsCreditCards !== true && place.paymentOptions?.acceptsDebitCards !== true) return;
 
-    if (filterState.wheelchair && tags.wheelchair !== "yes") return;
-    if (filterState.openHours && !tags.opening_hours) return;
-    if (filterState.outdoorSeating && tags.outdoor_seating !== "yes") return;
-    if (filterState.smoking && tags.smoking !== "yes") return;
-    if (filterState.toilet && tags.toilets !== "yes") return;
-    if (filterState.card && tags.payment_cards !== "yes") return;
-
-    const name = tags.name || "Unnamed Cafe";
+    const name = place.displayName?.text || "Unnamed Cafe";
 
     const marker = L.marker([lat, lon]).addTo(map);
     marker._icon.classList.add("cafe-marker");
     cafeMarkers.push(marker);
 
+    const hoursLine = place.currentOpeningHours
+      ? (place.currentOpeningHours.openNow ? "Open now" : "Closed now")
+      : "Business hours not available.";
+    const photoUrl = placePhotoUrl(place);
+
     marker.bindPopup(`
       <div style="text-align: center; color: var(--primary-color);">
+        ${photoUrl ? `<img src="${photoUrl}" alt="${name}" style="width:100%;max-width:220px;border-radius:12px;margin-bottom:6px;" />` : ""}
         <b>${name}</b><br>
-        <small>${tags.opening_hours || "Business hours not available."}</small><br>
+        ${place.rating ? `<small>★ ${place.rating.toFixed(1)} (${place.userRatingCount || 0})</small><br>` : ""}
+        <small>${hoursLine}</small><br>
         <button class="route-btn" onclick="routeToFromMarker(${lat}, ${lon})" data-route-lat="${lat}" data-route-lon="${lon}" style="background-color: var(--accent-color);">Get Route</button>
         <button class="route-btn" onclick="unroute()" style="background-color: var(--accent-color);">Unroute</button>
       </div>
@@ -447,25 +469,19 @@ function displayCafes(cafes) {
       card.className = "cafe-card";
       card.dataset.lat = lat;
       card.dataset.lon = lon;
-     
-      const formatValue = (value) => {
-        if (!value || value === "unknown") return "N/A";
-        if (value === "yes") return "Yes";
-        if (value === "no") return "No";
-        if (value === "limited") return "Limited";
-        return value;
-      };
-      
+
+      const formatBool = (value) => value === true ? "Yes" : value === false ? "No" : "N/A";
+
       card.innerHTML = `
         <h4>${name}</h4>
-        <p><strong>Business Hours:</strong> ${tags.opening_hours || "N/A"}</p>
-        <p><strong>Accepts Cards:</strong> ${formatValue(tags.payment_cards)}</p>
-        <p><strong>Wheelchair:</strong> ${formatValue(tags.wheelchair)}</p>
-        <p><strong>Outdoor Seating:</strong> ${formatValue(tags.outdoor_seating)}</p>
-        <p><strong>Smoking Area:</strong> ${formatValue(tags.smoking)}</p>
-        <p><strong>Toilet:</strong> ${formatValue(tags.toilets)}</p>
+        ${place.rating ? `<p><strong>Rating:</strong> ★ ${place.rating.toFixed(1)} (${place.userRatingCount || 0})</p>` : ""}
+        <p><strong>Hours:</strong> ${hoursLine}</p>
+        <p><strong>Accepts Cards:</strong> ${formatBool(place.paymentOptions?.acceptsCreditCards || place.paymentOptions?.acceptsDebitCards)}</p>
+        <p><strong>Wheelchair:</strong> ${formatBool(place.accessibilityOptions?.wheelchairAccessibleEntrance)}</p>
+        <p><strong>Outdoor Seating:</strong> ${formatBool(place.outdoorSeating)}</p>
+        <p><strong>Toilet:</strong> ${formatBool(place.restroom)}</p>
       `;
-      
+
       card.onclick = () => {
         if (activeCafeCard === card) {
           unroute();
@@ -476,12 +492,12 @@ function displayCafes(cafes) {
           routeTo(lat, lon);
         }
       };
-      
+
       if (lastRoutedLat === lat && lastRoutedLon === lon) {
         card.classList.add("active");
         activeCafeCard = card;
       }
-      
+
       cafeList.appendChild(card);
       cafeCount++;
     }
