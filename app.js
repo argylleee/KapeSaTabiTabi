@@ -349,27 +349,39 @@ async function loadCafes() {
   const cached = localStorage.getItem(cacheKey);
 
   if (cached) {
-    displayCafes(JSON.parse(cached));
-    return;
+    try {
+      displayCafes(JSON.parse(cached));
+      return;
+    } catch (err) {
+      console.error("Corrupt cafe cache entry, refetching:", err);
+      localStorage.removeItem(cacheKey);
+    }
   }
 
-  const query = `
-    [out:json];
-    (
-      node["amenity"="cafe"](around:3000,${currentLat},${currentLon});
-      way["amenity"="cafe"](around:3000,${currentLat},${currentLon});
-    );
-    out center tags;
-  `;
+  // /api/cafes proxies Overpass server-side (see api/cafes.js) — calling
+  // Overpass directly from the browser fails with a CORS error from this
+  // app's deployed domain, and a server-to-server fetch isn't subject to
+  // CORS at all.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
 
-  const res = await fetch("https://overpass-api.de/api/interpreter", {
-    method: "POST",
-    body: query,
-  });
+  try {
+    const res = await fetch(`/api/cafes?lat=${currentLat}&lon=${currentLon}&radius=3000`, {
+      signal: controller.signal
+    });
+    if (!res.ok) throw new Error(`/api/cafes responded ${res.status}`);
 
-  const data = await res.json();
-  localStorage.setItem(cacheKey, JSON.stringify(data.elements));
-  displayCafes(data.elements);
+    const data = await res.json();
+    localStorage.setItem(cacheKey, JSON.stringify(data.elements));
+    displayCafes(data.elements);
+  } catch (err) {
+    console.error("Cafe fetch failed:", err);
+    if (cafeList) {
+      cafeList.innerHTML = '<p style="padding: 12px; text-align: center; color: var(--primary-color);">Could not load cafes. Check your connection.</p>';
+    }
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 // display cafes
