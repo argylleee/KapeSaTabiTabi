@@ -358,29 +358,50 @@ async function loadCafes() {
     }
   }
 
-  // /api/cafes proxies Overpass server-side (see api/cafes.js) — calling
-  // Overpass directly from the browser fails with a CORS error from this
-  // app's deployed domain, and a server-to-server fetch isn't subject to
-  // CORS at all.
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
+  const query = `
+    [out:json];
+    (
+      node["amenity"="cafe"](around:3000,${currentLat},${currentLon});
+      way["amenity"="cafe"](around:3000,${currentLat},${currentLon});
+    );
+    out center tags;
+  `;
 
-  try {
-    const res = await fetch(`/api/cafes?lat=${currentLat}&lon=${currentLon}&radius=3000`, {
-      signal: controller.signal
-    });
-    if (!res.ok) throw new Error(`/api/cafes responded ${res.status}`);
+  // Several public mirrors, tried in order, each with its own timeout, so a
+  // single unreachable/CORS-blocking instance can't hang the app forever —
+  // the original single-mirror call had no error handling at all, which is
+  // why any failure left the list stuck on "Loading cafes..." indefinitely.
+  const OVERPASS_MIRRORS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.openstreetmap.fr/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter"
+  ];
 
-    const data = await res.json();
-    localStorage.setItem(cacheKey, JSON.stringify(data.elements));
-    displayCafes(data.elements);
-  } catch (err) {
-    console.error("Cafe fetch failed:", err);
-    if (cafeList) {
-      cafeList.innerHTML = '<p style="padding: 12px; text-align: center; color: var(--primary-color);">Could not load cafes. Check your connection.</p>';
+  for (const endpoint of OVERPASS_MIRRORS) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        body: query,
+        signal: controller.signal,
+        referrerPolicy: "no-referrer"
+      });
+      if (!res.ok) throw new Error(`${endpoint} responded ${res.status}`);
+
+      const data = await res.json();
+      localStorage.setItem(cacheKey, JSON.stringify(data.elements));
+      displayCafes(data.elements);
+      return;
+    } catch (err) {
+      console.error(`Overpass mirror ${endpoint} failed:`, err);
+    } finally {
+      clearTimeout(timeoutId);
     }
-  } finally {
-    clearTimeout(timeoutId);
+  }
+
+  if (cafeList) {
+    cafeList.innerHTML = '<p style="padding: 12px; text-align: center; color: var(--primary-color);">Could not load cafes. Check your connection.</p>';
   }
 }
 
