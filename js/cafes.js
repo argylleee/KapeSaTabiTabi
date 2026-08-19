@@ -69,7 +69,7 @@ export async function loadCafes() {
   const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   try {
-    const res = await fetch(`/api/cafes?lat=${state.currentLat}&lon=${state.currentLon}&radius=3000`, {
+    const res = await fetch(`/api/cafes?lat=${state.currentLat}&lon=${state.currentLon}&radius=5000`, {
       signal: controller.signal,
     });
     if (!res.ok) throw new Error(`/api/cafes responded ${res.status}`);

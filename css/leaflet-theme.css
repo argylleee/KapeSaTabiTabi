@@ -155,27 +155,41 @@
   color: var(--ink);
 }
 
+/* toolbar (grabber + mode toggle + close) is a real flow element, prepended
+   as the container's first child — this guarantees the header/instructions
+   that follow it in the DOM are pushed down and can never be overlapped,
+   unlike the previous absolute-positioned icons that overlapped route text */
+.routing-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 10px 0;
+}
+
+.leaflet-routing-container.leaflet-routing-container-hidden .routing-toolbar {
+  display: none;
+}
+
 .leaflet-routing-close {
-  position: absolute;
-  top: 8px;
-  right: 8px;
+  position: static;
   background: var(--paper-dim);
   color: var(--ink);
   border: none;
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background-color 160ms ease;
-  z-index: 1001;
+  flex: none;
   padding: 0;
 }
 
 .leaflet-routing-close .material-symbols-outlined {
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .leaflet-routing-close:hover {
@@ -186,28 +200,14 @@
   display: none !important;
 }
 
-.leaflet-routing-container:not(.leaflet-routing-container-hidden)::before {
-  content: "";
-  display: block;
-  width: 40px;
-  height: 4px;
-  border-radius: 4px;
-  background: var(--line);
-  margin: 10px auto 0;
-}
-
 .routing-mode-toggle {
-  position: absolute;
-  top: 8px;
-  left: 8px;
   display: flex;
-  gap: 4px;
-  z-index: 1001;
+  gap: 6px;
 }
 
 .routing-mode-toggle button {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   border: none;
   background: var(--paper-dim);
@@ -220,7 +220,7 @@
 }
 
 .routing-mode-toggle button .material-symbols-outlined {
-  font-size: 16px;
+  font-size: 20px;
 }
 
 .routing-mode-toggle button.active {
@@ -233,7 +233,7 @@
   font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: 700;
-  padding: 44px 16px 10px;
+  padding: 6px 16px 10px;
 }
 
 .leaflet-routing-alternatives {

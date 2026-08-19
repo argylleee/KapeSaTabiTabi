@@ -2,6 +2,7 @@ import { state } from "./state.js";
 import { map } from "./map.js";
 import { collapseSheet } from "./sheet.js";
 import { refreshMarkerColors } from "./cafes.js";
+import { dom } from "./dom.js";
 
 let isDragging = false;
 let dragOffsetX = 0;
@@ -60,6 +61,7 @@ export function routeTo(lat, lon) {
 
   refreshMarkerColors();
   document.body.classList.toggle("routing-open", state.routingDirectionsVisible);
+  updateCancelButtonVisibility();
 
   setTimeout(() => {
     const container = document.querySelector(".leaflet-routing-container");
@@ -93,7 +95,8 @@ export function routeTo(lat, lon) {
 }
 
 function ensureCloseButton(container) {
-  if (container.querySelector(".leaflet-routing-close")) return;
+  const toolbar = ensureToolbar(container);
+  if (toolbar.querySelector(".leaflet-routing-close")) return;
   const closeBtn = document.createElement("button");
   closeBtn.className = "leaflet-routing-close";
   closeBtn.innerHTML = '<span class="material-symbols-outlined">close</span>';
@@ -101,7 +104,7 @@ function ensureCloseButton(container) {
     e.stopPropagation();
     toggleRoutingDirections();
   };
-  container.appendChild(closeBtn);
+  toolbar.appendChild(closeBtn); // always last -> right side of the toolbar
 }
 
 function ensureFabIcon(container) {
@@ -112,12 +115,26 @@ function ensureFabIcon(container) {
   container.appendChild(icon);
 }
 
+// A real, normal-flow toolbar (not absolutely-positioned icons) prepended as
+// the container's first child, so the header/instructions that follow it in
+// the DOM are always pushed down and can never overlap it.
+function ensureToolbar(container) {
+  let toolbar = container.querySelector(".routing-toolbar");
+  if (!toolbar) {
+    toolbar = document.createElement("div");
+    toolbar.className = "routing-toolbar";
+    container.insertBefore(toolbar, container.firstChild);
+  }
+  return toolbar;
+}
+
 function ensureModeToggle(container) {
-  let wrap = container.querySelector(".routing-mode-toggle");
+  const toolbar = ensureToolbar(container);
+  let wrap = toolbar.querySelector(".routing-mode-toggle");
   if (!wrap) {
     wrap = document.createElement("div");
     wrap.className = "routing-mode-toggle";
-    container.appendChild(wrap);
+    toolbar.prepend(wrap); // always first -> left side of the toolbar
   }
   wrap.innerHTML = Object.entries(TRAVEL_MODES)
     .map(
@@ -159,7 +176,17 @@ export function unroute() {
   if (prevLat != null && prevLon != null) updateRouteButtonState(prevLat, prevLon, false);
   refreshMarkerColors();
   document.body.classList.remove("routing-open");
+  updateCancelButtonVisibility();
 }
+
+// Reachable no matter where the map is pinned/panned — you should never have
+// to navigate back to a routed café's location just to cancel the route.
+function updateCancelButtonVisibility() {
+  if (!dom.cancelRouteBtn) return;
+  dom.cancelRouteBtn.hidden = !(state.lastRoutedLat != null && state.lastRoutedLon != null);
+}
+
+dom.cancelRouteBtn?.addEventListener("click", () => unroute());
 
 export function toggleRoutingDirections() {
   state.routingDirectionsVisible = !state.routingDirectionsVisible;

@@ -3,6 +3,7 @@ export const dom = {
   searchInput: document.getElementById("searchInput"),
   searchBtn: document.getElementById("searchBtn"),
   locateBtn: document.getElementById("locateBtn"),
+  cancelRouteBtn: document.getElementById("cancelRouteBtn"),
   loadingScreen: document.getElementById("loadingScreen"),
   cafeSearchInput: document.getElementById("cafeSearchInput"),
   cafeList: document.getElementById("cafeList"),

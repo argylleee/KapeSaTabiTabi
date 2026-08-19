@@ -29,6 +29,31 @@
   color: var(--ink-soft);
 }
 
+/* reachable regardless of where the map is panned/pinned — the point is you
+   should never have to navigate back to a routed café just to cancel it */
+.cancel-route-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  background: var(--rust);
+  color: var(--surface);
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 8px 14px 8px 10px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  box-shadow: var(--shadow);
+}
+
+.cancel-route-pill .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.cancel-route-pill[hidden] {
+  display: none;
+}
+
 .search-pill input {
   flex: 1;
   min-width: 0;
