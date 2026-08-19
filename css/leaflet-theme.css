@@ -218,6 +218,10 @@
   transition: transform 140ms ease;
 }
 
+.routing-cancel-btn:hover {
+  background: #9c4327;
+}
+
 .routing-cancel-btn:active {
   transform: scale(0.95);
 }
@@ -272,6 +276,11 @@
 
 .routing-mode-toggle button .material-symbols-outlined {
   font-size: 20px;
+}
+
+.routing-mode-toggle button:hover:not(.active) {
+  background: var(--paper);
+  color: var(--ink);
 }
 
 .routing-mode-toggle button.active {

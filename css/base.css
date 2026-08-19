@@ -63,6 +63,16 @@ button {
   align-items: center;
   justify-content: center;
   padding: 0;
+  border-radius: 50%;
+  transition: background-color 140ms ease, transform 140ms ease;
+}
+
+.icon-btn:hover {
+  background: var(--paper-dim);
+}
+
+.icon-btn:active {
+  transform: scale(0.92);
 }
 
 #map {

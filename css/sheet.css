@@ -70,6 +70,12 @@
   padding: 6px 12px;
   font-size: var(--text-xs);
   font-weight: 700;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.sort-pill:hover {
+  background: var(--marigold);
+  color: var(--ink);
 }
 
 .sort-pill .material-symbols-outlined {
@@ -183,6 +189,10 @@
   padding: 0;
   z-index: 2;
   transition: background-color 140ms ease, transform 140ms ease;
+}
+
+.cafe-photo .favorite-btn:hover {
+  transform: scale(1.1);
 }
 
 .cafe-photo .favorite-btn:active {

@@ -24,6 +24,34 @@ export function initSheet() {
     e.preventDefault();
     dom.cafeSearchInput.blur();
   });
+
+  initCafeListScroll();
+}
+
+// Desktop-only: the café row scrolls horizontally there (see responsive.css),
+// so it gets the same left/right arrow affordance as the filter chips. The
+// buttons are CSS-hidden on mobile, so this wiring is inert there.
+function initCafeListScroll() {
+  const left = document.getElementById("cafeListScrollLeft");
+  const right = document.getElementById("cafeListScrollRight");
+  const list = dom.cafeList;
+  if (!left || !right || !list) return;
+
+  function update() {
+    left.classList.toggle("hidden", list.scrollLeft <= 0);
+    right.classList.toggle("hidden", list.scrollLeft + list.clientWidth >= list.scrollWidth - 1);
+  }
+
+  left.addEventListener("click", () => {
+    list.scrollBy({ left: -220, behavior: "smooth" });
+    setTimeout(update, 300);
+  });
+  right.addEventListener("click", () => {
+    list.scrollBy({ left: 220, behavior: "smooth" });
+    setTimeout(update, 300);
+  });
+  list.addEventListener("scroll", update);
+  setTimeout(update, 300);
 }
 
 function toggleSheet(force) {

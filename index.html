@@ -111,7 +111,15 @@
       <span class="material-symbols-outlined">search</span>
       <input type="text" id="cafeSearchInput" placeholder="Search cafés in this list…" enterkeyhint="search" />
     </form>
-    <section id="cafeList"></section>
+    <div class="cafelist-wrap">
+      <button id="cafeListScrollLeft" class="filter-scroll-btn cafelist-scroll left" type="button" aria-label="Scroll cafés left">
+        <span class="material-symbols-outlined">chevron_left</span>
+      </button>
+      <section id="cafeList"></section>
+      <button id="cafeListScrollRight" class="filter-scroll-btn cafelist-scroll right" type="button" aria-label="Scroll cafés right">
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+    </div>
   </section>
 
   <footer>

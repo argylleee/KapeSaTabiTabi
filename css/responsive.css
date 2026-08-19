@@ -73,6 +73,17 @@
   display: none;
 }
 
+/* café-list scroll arrows (desktop-only, mirrors the filter chip arrows) —
+   the wrapper is structurally invisible on mobile via display:contents, and
+   the buttons themselves stay display:none until the desktop block below */
+.cafelist-wrap {
+  display: contents;
+}
+
+.cafelist-scroll {
+  display: none;
+}
+
 /* desktop / tablet: search + filters move to a centered top bar, the café
    list becomes a centered horizontal strip at the bottom (matching the
    mobile peek-card look, just docked instead of a full sheet), and the
@@ -95,16 +106,18 @@
     font-size: var(--text-lg);
   }
 
-  /* café panel: centered horizontal strip, not a tall left-docked sidebar */
+  /* café panel: centered horizontal strip, not a tall left-docked sidebar.
+     Raised to 48px (rather than hugging the very bottom edge) to leave room
+     for the "Developed by" credit underneath it. */
   .sheet {
     left: 50%;
     right: auto;
-    bottom: 20px;
+    bottom: 48px;
     top: auto;
     transform: translate(-50%, 0);
     width: min(1000px, calc(100vw - 240px));
     height: auto;
-    max-height: 320px;
+    max-height: 380px;
     border-radius: var(--radius-sheet);
     overflow: hidden;
     transition: opacity 200ms ease, transform 200ms ease;
@@ -132,16 +145,44 @@
     flex: none;
   }
 
+  /* wrapper adds the left/right scroll buttons around the card row, mirroring
+     the filter chips above; display:contents by default (see the unscoped
+     rule above) means it's structurally invisible on mobile */
+  .cafelist-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    min-height: 0;
+    padding: 0 8px;
+  }
+
+  .cafelist-scroll {
+    display: flex;
+  }
+
   /* horizontal-scrolling row instead of a vertical list, same card design
-     as the mobile "peek" row */
+     as the mobile "peek" row. align-items:flex-start (rather than the flex
+     default of stretch) lets each card size to its own content instead of
+     being force-stretched to a uniform row height, which was clipping the
+     bottom row of filter tags outside the card's rounded edges. */
   #cafeList {
     flex: 1;
     display: flex;
     flex-direction: row;
+    align-items: flex-start;
     overflow-x: auto;
     overflow-y: hidden;
     gap: 12px;
-    padding: 0 20px 20px;
+    padding: 0 4px 20px;
+  }
+
+  #cafeList::-webkit-scrollbar {
+    display: none;
+  }
+
+  #cafeList {
+    scrollbar-width: none;
   }
 
   .cafe-card {
@@ -149,21 +190,50 @@
     flex: none;
     width: 168px;
     margin-bottom: 0;
+    overflow: hidden; /* safety clip if a card's tags ever still run long */
   }
 
   .cafe-photo {
     width: 100%;
-    height: 96px;
+    height: 88px;
   }
 
+  /* filters row already has left/right arrow buttons, so its own scrollbar
+     (visible in Chromium via the standard scrollbar-width property, even
+     though the webkit-prefixed one above is set to none) is redundant */
+  #filters {
+    scrollbar-width: none;
+  }
+
+  /* footer.css lays .web-title and .credits out as a flex row inside
+     <footer>; giving each its own fixed position here breaks them out of
+     that shared box entirely, so they can sit in different parts of the
+     screen without overlapping. It also neutralizes the mobile-oriented
+     ".sheet.expanded ~ footer" rule, which was computing a bottom offset
+     from --sheet-max-height (a mobile viewport-height value) any time the
+     hamburger button's unconditional .expanded toggle fired on desktop —
+     that's what made the footer text jump to an unrelated position. */
   footer {
+    display: contents;
+  }
+
+  footer .web-title {
+    position: fixed;
     left: 20px;
-    bottom: 20px;
+    bottom: 14px;
     z-index: 25;
+    pointer-events: none;
   }
 
   footer .credits {
     display: block;
+    position: fixed;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    z-index: 25;
+    pointer-events: none;
+    text-align: center;
   }
 
   footer .credits p {
@@ -172,8 +242,14 @@
   }
 
   /* zoom stays bottom-right (see map.js — the control is created there with
-     position: 'bottomright'); the directions button gets the now-empty
-     top-right corner, clear of the centered search bar */
+     position: 'bottomright'), pushed up with a margin so the attribution
+     toggle can sit below it, closer to the true corner; the directions
+     button gets the now-empty top-right corner, clear of the centered
+     search bar */
+  .leaflet-bottom.leaflet-right {
+    margin-bottom: 58px;
+  }
+
   .leaflet-routing-container.leaflet-routing-container-hidden {
     top: 20px;
     right: 20px;
@@ -187,19 +263,27 @@
     max-height: min(70vh, 600px);
   }
 
+  /* opacity/transform (not display) so the reveal can animate — sliding in
+     from the right as it appears ("slide left" into view) */
   .leaflet-control-attribution {
-    display: none;
+    display: block !important;
+    transition: opacity 220ms ease, transform 220ms ease;
+    opacity: 0;
+    transform: translateX(14px);
+    pointer-events: none;
   }
 
   body.show-attribution .leaflet-control-attribution {
-    display: block;
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
   }
 
   .attribution-toggle {
     display: flex;
     position: fixed;
     right: 20px;
-    bottom: 100px; /* stacked above the zoom control, same right-hand column */
+    bottom: 20px; /* below the zoom control, which is pushed up above it */
     z-index: 30;
     width: 30px;
     height: 30px;
@@ -210,6 +294,15 @@
     align-items: center;
     justify-content: center;
     box-shadow: var(--shadow);
+    transition: background-color 140ms ease, color 140ms ease, transform 140ms ease;
+  }
+
+  .attribution-toggle:hover {
+    transform: scale(1.08);
+  }
+
+  .attribution-toggle:active {
+    transform: scale(0.92);
   }
 
   .attribution-toggle .material-symbols-outlined {
