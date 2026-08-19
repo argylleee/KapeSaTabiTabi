@@ -14,6 +14,9 @@ export function initMap() {
   // mobile, which hides the zoom control outright (see responsive.css).
   map = L.map("map", { zoomControl: false }).setView([MANILA.lat, MANILA.lon], 14);
   L.control.zoom({ position: "bottomright" }).addTo(map);
+  // swap Leaflet's own "Leaflet" self-promo prefix for our name — the OSM
+  // credit itself stays, since that one's the tile provider's actual terms
+  map.attributionControl.setPrefix("Kape sa Tabi-tabi");
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap contributors",

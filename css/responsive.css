@@ -119,7 +119,6 @@
     height: auto;
     max-height: 380px;
     border-radius: var(--radius-sheet);
-    overflow: hidden;
     transition: opacity 200ms ease, transform 200ms ease;
     opacity: 1;
     pointer-events: auto;
@@ -147,18 +146,40 @@
 
   /* wrapper adds the left/right scroll buttons around the card row, mirroring
      the filter chips above; display:contents by default (see the unscoped
-     rule above) means it's structurally invisible on mobile */
+     rule above) means it's structurally invisible on mobile. Kept as a plain
+     flex row here — the buttons themselves opt out via position:absolute
+     below, so they can center on and straddle the *whole panel*, not just
+     this row. */
   .cafelist-wrap {
     display: flex;
     align-items: center;
-    gap: 4px;
     flex: 1;
     min-height: 0;
-    padding: 0 8px;
   }
 
+  /* half in, half out of the panel's edge, centered on the panel's full
+     height (not just the card row) — resolves against .sheet, the nearest
+     positioned ancestor, since this wrapper itself stays position:static */
   .cafelist-scroll {
     display: flex;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    z-index: 5;
+  }
+
+  .cafelist-scroll.left {
+    left: -22px;
+  }
+
+  .cafelist-scroll.right {
+    right: -22px;
+  }
+
+  .cafelist-scroll .material-symbols-outlined {
+    font-size: 22px;
   }
 
   /* horizontal-scrolling row instead of a vertical list, same card design
@@ -174,7 +195,7 @@
     overflow-x: auto;
     overflow-y: hidden;
     gap: 12px;
-    padding: 0 4px 20px;
+    padding: 0 30px 20px; /* clears the half-overlaid scroll buttons at each edge */
   }
 
   #cafeList::-webkit-scrollbar {
@@ -242,12 +263,15 @@
   }
 
   /* zoom stays bottom-right (see map.js — the control is created there with
-     position: 'bottomright'), pushed up with a margin so the attribution
-     toggle can sit below it, closer to the true corner; the directions
-     button gets the now-empty top-right corner, clear of the centered
-     search bar */
+     position: 'bottomright'), pushed up just enough to clear the attribution
+     toggle below it, and right-aligned to match the toggle/FAB/footer's
+     20px inset exactly (Leaflet's own default corner margin is ~10px,
+     which was reading as slightly misaligned/asymmetric against everything
+     else on the right edge); the directions button gets the now-empty
+     top-right corner, clear of the centered search bar */
   .leaflet-bottom.leaflet-right {
-    margin-bottom: 58px;
+    margin-bottom: 46px;
+    margin-right: 20px;
   }
 
   .leaflet-routing-container.leaflet-routing-container-hidden {
@@ -263,19 +287,41 @@
     max-height: min(70vh, 600px);
   }
 
-  /* opacity/transform (not display) so the reveal can animate — sliding in
-     from the right as it appears ("slide left" into view) */
+  /* detached entirely from Leaflet's own corner-stacking layout (which put
+     it above the zoom control, not beside our toggle) and rebuilt as a chat
+     -bubble popup: fixed at the exact same height as the toggle button,
+     immediately to its left, popping/sliding out from the icon */
   .leaflet-control-attribution {
-    display: block !important;
-    transition: opacity 220ms ease, transform 220ms ease;
+    position: fixed !important;
+    left: auto !important;
+    top: auto !important;
+    right: 58px;
+    bottom: 20px;
+    margin: 0 !important;
+    max-width: 260px;
+    background: var(--surface) !important;
+    color: var(--ink-soft) !important;
+    border-radius: var(--radius-pill) !important;
+    padding: 8px 14px !important;
+    font-size: 11px !important;
+    line-height: 1.4;
+    box-shadow: var(--shadow);
+    white-space: nowrap;
+    transform-origin: right center;
+    transition: opacity 200ms ease, transform 200ms ease;
     opacity: 0;
-    transform: translateX(14px);
+    transform: translateX(10px) scale(0.9);
     pointer-events: none;
+  }
+
+  .leaflet-control-attribution a {
+    color: var(--ink);
+    font-weight: 600;
   }
 
   body.show-attribution .leaflet-control-attribution {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
     pointer-events: auto;
   }
 
