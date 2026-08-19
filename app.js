@@ -1,7 +1,3 @@
-// Referrer-restricted in Google Cloud Console (HTTP referrers + API
-// restriction to Places API (New)) — not treated as a secret.
-const GOOGLE_PLACES_API_KEY = "AIzaSyB3Q3BUXF8fwSTYLfwTbRYrpRMim6WoBLY";
-
 // default map
 const map = L.map("map").setView([14.5995, 120.9842], 14);
 
@@ -339,24 +335,12 @@ locateBtn.addEventListener("click", () => {
   );
 });
 
-// load cafes (Google Places API — see PLACES_FIELD_MASK for what's fetched)
-const PLACES_FIELD_MASK = [
-  "places.id",
-  "places.displayName",
-  "places.formattedAddress",
-  "places.location",
-  "places.rating",
-  "places.userRatingCount",
-  "places.photos",
-  "places.currentOpeningHours.openNow",
-  "places.currentOpeningHours.weekdayDescriptions",
-  "places.accessibilityOptions.wheelchairAccessibleEntrance",
-  "places.outdoorSeating",
-  "places.restroom",
-  "places.paymentOptions.acceptsCreditCards",
-  "places.paymentOptions.acceptsDebitCards"
-].join(",");
-
+// load cafes — via /api/cafes (see api/cafes.js), which holds the Google
+// Places API key server-side. A key embedded here would be readable by
+// anyone who views the page source or the Network tab, and HTTP-referrer
+// restrictions don't stop that (they're just a header any HTTP client can
+// set) — this repo is public, so a client-side key would be a live leak
+// the moment it's committed.
 async function loadCafes() {
   if (!currentLat || !currentLon) return;
 
@@ -383,24 +367,11 @@ async function loadCafes() {
   const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   try {
-    const res = await fetch("https://places.googleapis.com/v1/places:searchNearby", {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
-        "X-Goog-FieldMask": PLACES_FIELD_MASK
-      },
-      body: JSON.stringify({
-        includedTypes: ["cafe"],
-        maxResultCount: 20,
-        locationRestriction: {
-          circle: { center: { latitude: currentLat, longitude: currentLon }, radius: 3000.0 }
-        }
-      })
+    const res = await fetch(`/api/cafes?lat=${currentLat}&lon=${currentLon}&radius=3000`, {
+      signal: controller.signal
     });
 
-    if (!res.ok) throw new Error(`Places API responded ${res.status}`);
+    if (!res.ok) throw new Error(`/api/cafes responded ${res.status}`);
     const data = await res.json();
     const places = data.places || [];
     localStorage.setItem(cacheKey, JSON.stringify(places));
@@ -419,7 +390,9 @@ async function loadCafes() {
 function placePhotoUrl(place, maxHeightPx = 200) {
   const photo = place.photos && place.photos[0];
   if (!photo) return null;
-  return `https://places.googleapis.com/v1/${photo.name}/media?maxHeightPx=${maxHeightPx}&key=${GOOGLE_PLACES_API_KEY}`;
+  // /api/photo (see api/photo.js) proxies the image server-side, so the API
+  // key never appears in an <img src> or the Network tab either.
+  return `/api/photo?name=${encodeURIComponent(photo.name)}&maxHeightPx=${maxHeightPx}`;
 }
 
 function displayCafes(cafes) {
