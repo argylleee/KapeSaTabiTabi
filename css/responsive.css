@@ -84,6 +84,12 @@
   display: none;
 }
 
+/* brand mark, top-left — desktop only, same reasoning as the rest: hidden
+   by default so it never appears on mobile regardless of DOM position */
+.brand-logo {
+  display: none;
+}
+
 /* desktop / tablet: search + filters move to a centered top bar, the café
    list becomes a centered horizontal strip at the bottom (matching the
    mobile peek-card look, just docked instead of a full sheet), and the
@@ -95,6 +101,19 @@
     transform: translateX(-50%);
     width: min(720px, calc(100vw - 240px));
     align-items: center;
+  }
+
+  /* matches the 20px inset used everywhere else (footer, zoom, attribution,
+     directions FAB) for a consistent margin all around the screen */
+  .brand-logo {
+    display: block;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 25;
+    width: 40px;
+    height: auto;
+    filter: drop-shadow(0 2px 6px rgba(46, 27, 15, 0.25));
   }
 
   .search-pill,
