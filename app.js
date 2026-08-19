@@ -1,6 +1,6 @@
 // Referrer-restricted in Google Cloud Console (HTTP referrers + API
 // restriction to Places API (New)) — not treated as a secret.
-const GOOGLE_PLACES_API_KEY = "AIzaSyBaiRriO-TdpHRt5XEGYHRvnMpt0ehDe-g";
+const GOOGLE_PLACES_API_KEY = "AIzaSyB3Q3BUXF8fwSTYLfwTbRYrpRMim6WoBLY";
 
 // default map
 const map = L.map("map").setView([14.5995, 120.9842], 14);
