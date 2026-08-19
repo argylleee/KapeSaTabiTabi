@@ -13,6 +13,14 @@ export function initSheet() {
   if (dom.cafeSearchInput) {
     dom.cafeSearchInput.addEventListener("input", (e) => filterCafeCards(e.target.value));
   }
+
+  // filtering already happens live on input; the form just needs to swallow
+  // the mobile keyboard's "Go"/"Search" action and dismiss the keyboard,
+  // same fix as the top search bar (see search.js for why this matters).
+  dom.cafeSearchForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    dom.cafeSearchInput.blur();
+  });
 }
 
 function toggleSheet(force) {

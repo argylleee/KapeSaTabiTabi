@@ -2,7 +2,6 @@ import { state } from "./state.js";
 import { map } from "./map.js";
 import { collapseSheet } from "./sheet.js";
 import { refreshMarkerColors } from "./cafes.js";
-import { dom } from "./dom.js";
 
 let isDragging = false;
 let dragOffsetX = 0;
@@ -69,8 +68,10 @@ export function routeTo(lat, lon) {
 
     if (state.routingDirectionsVisible) {
       container.classList.remove("leaflet-routing-container-hidden");
-      ensureCloseButton(container);
       ensureModeToggle(container);
+      ensureCancelButton(container);
+      ensureCloseButton(container);
+      setupStickySummary(container);
     } else {
       container.classList.add("leaflet-routing-container-hidden");
       ensureFabIcon(container);
@@ -95,8 +96,8 @@ export function routeTo(lat, lon) {
 }
 
 function ensureCloseButton(container) {
-  const toolbar = ensureToolbar(container);
-  if (toolbar.querySelector(".leaflet-routing-close")) return;
+  const right = ensureToolbarRight(container);
+  if (right.querySelector(".leaflet-routing-close")) return;
   const closeBtn = document.createElement("button");
   closeBtn.className = "leaflet-routing-close";
   closeBtn.innerHTML = '<span class="material-symbols-outlined">close</span>';
@@ -104,7 +105,21 @@ function ensureCloseButton(container) {
     e.stopPropagation();
     toggleRoutingDirections();
   };
-  toolbar.appendChild(closeBtn); // always last -> right side of the toolbar
+  right.appendChild(closeBtn); // always last -> rightmost
+}
+
+function ensureCancelButton(container) {
+  const right = ensureToolbarRight(container);
+  if (right.querySelector(".routing-cancel-btn")) return;
+  const cancelBtn = document.createElement("button");
+  cancelBtn.className = "routing-cancel-btn";
+  cancelBtn.setAttribute("aria-label", "Cancel route");
+  cancelBtn.innerHTML = '<span class="material-symbols-outlined">block</span>';
+  cancelBtn.onclick = (e) => {
+    e.stopPropagation();
+    unroute();
+  };
+  right.prepend(cancelBtn); // sits just left of the close button
 }
 
 function ensureFabIcon(container) {
@@ -128,13 +143,35 @@ function ensureToolbar(container) {
   return toolbar;
 }
 
-function ensureModeToggle(container) {
+function ensureToolbarLeft(container) {
   const toolbar = ensureToolbar(container);
-  let wrap = toolbar.querySelector(".routing-mode-toggle");
+  let left = toolbar.querySelector(".routing-toolbar-left");
+  if (!left) {
+    left = document.createElement("div");
+    left.className = "routing-toolbar-left";
+    toolbar.prepend(left);
+  }
+  return left;
+}
+
+function ensureToolbarRight(container) {
+  const toolbar = ensureToolbar(container);
+  let right = toolbar.querySelector(".routing-toolbar-right");
+  if (!right) {
+    right = document.createElement("div");
+    right.className = "routing-toolbar-right";
+    toolbar.appendChild(right);
+  }
+  return right;
+}
+
+function ensureModeToggle(container) {
+  const left = ensureToolbarLeft(container);
+  let wrap = left.querySelector(".routing-mode-toggle");
   if (!wrap) {
     wrap = document.createElement("div");
     wrap.className = "routing-mode-toggle";
-    toolbar.prepend(wrap); // always first -> left side of the toolbar
+    left.prepend(wrap); // always first -> left of the summary badge
   }
   wrap.innerHTML = Object.entries(TRAVEL_MODES)
     .map(
@@ -154,6 +191,35 @@ function ensureModeToggle(container) {
       }
     });
   });
+}
+
+// The route's distance/duration summary lives in the header, which scrolls
+// out of view with the rest of the instruction list. Mirror it into a small
+// badge next to the mode toggle whenever the real header isn't visible, so
+// it stays trackable while scrolling — and let it disappear again once
+// scrolled back to the top, where the real header is doing the same job.
+function setupStickySummary(container) {
+  const header = container.querySelector(".leaflet-routing-header");
+  if (!header || typeof IntersectionObserver === "undefined") return;
+
+  const left = ensureToolbarLeft(container);
+  let badge = left.querySelector(".routing-summary-badge");
+  if (!badge) {
+    badge = document.createElement("span");
+    badge.className = "routing-summary-badge";
+    left.appendChild(badge); // after the mode toggle
+  }
+
+  const summaryEl = header.lastElementChild && header.lastElementChild !== header.firstElementChild ? header.lastElementChild : header;
+  badge.textContent = summaryEl.textContent.trim();
+  badge.hidden = true;
+
+  container._summaryObserver?.disconnect();
+  const observer = new IntersectionObserver(([entry]) => {
+    badge.hidden = entry.isIntersecting;
+  }, { root: container, threshold: 0 });
+  observer.observe(header);
+  container._summaryObserver = observer;
 }
 
 export function unroute() {
@@ -176,17 +242,7 @@ export function unroute() {
   if (prevLat != null && prevLon != null) updateRouteButtonState(prevLat, prevLon, false);
   refreshMarkerColors();
   document.body.classList.remove("routing-open");
-  updateCancelButtonVisibility();
 }
-
-// Reachable no matter where the map is pinned/panned — you should never have
-// to navigate back to a routed café's location just to cancel the route.
-function updateCancelButtonVisibility() {
-  if (!dom.cancelRouteBtn) return;
-  dom.cancelRouteBtn.hidden = !(state.lastRoutedLat != null && state.lastRoutedLon != null);
-}
-
-dom.cancelRouteBtn?.addEventListener("click", () => unroute());
 
 export function toggleRoutingDirections() {
   state.routingDirectionsVisible = !state.routingDirectionsVisible;
@@ -201,8 +257,10 @@ export function toggleRoutingDirections() {
     state.routingControl.show();
     if (container) {
       container.classList.remove("leaflet-routing-container-hidden");
-      ensureCloseButton(container);
       ensureModeToggle(container);
+      ensureCancelButton(container);
+      ensureCloseButton(container);
+      setupStickySummary(container);
     }
   } else {
     state.routingControl.hide();

@@ -42,11 +42,11 @@
   <main id="map"></main>
 
   <div class="top-stack">
-    <section class="search-pill">
+    <form id="searchForm" class="search-pill">
       <button id="menu" type="button" class="icon-btn" aria-label="Toggle café list">
         <span class="material-symbols-outlined">menu</span>
       </button>
-      <input type="text" id="searchInput" placeholder="Search any city or place…" />
+      <input type="text" id="searchInput" placeholder="Search any city or place…" enterkeyhint="search" />
       <button id="searchBtn" type="button" class="icon-btn" aria-label="Search">
         <span class="material-symbols-outlined">search</span>
       </button>
@@ -54,12 +54,7 @@
       <button id="locateBtn" type="button" class="icon-btn locate" aria-label="Use my location">
         <span class="material-symbols-outlined">my_location</span>
       </button>
-    </section>
-
-    <button id="cancelRouteBtn" type="button" class="cancel-route-pill" hidden>
-      <span class="material-symbols-outlined">close</span>
-      Cancel route
-    </button>
+    </form>
 
     <div class="filters-container">
       <button id="filterScrollLeft" class="filter-scroll-btn left" type="button" aria-label="Scroll filters left">
@@ -112,10 +107,10 @@
         <span id="sortLabel">Distance</span>
       </button>
     </div>
-    <div class="cafe-search">
+    <form id="cafeSearchForm" class="cafe-search">
       <span class="material-symbols-outlined">search</span>
-      <input type="text" id="cafeSearchInput" placeholder="Search cafés in this list…" />
-    </div>
+      <input type="text" id="cafeSearchInput" placeholder="Search cafés in this list…" enterkeyhint="search" />
+    </form>
     <section id="cafeList"></section>
   </section>
 

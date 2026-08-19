@@ -171,6 +171,59 @@
   display: none;
 }
 
+.routing-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.routing-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+
+.routing-summary-badge {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--paper-dim);
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.routing-summary-badge[hidden] {
+  display: none;
+}
+
+.routing-cancel-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: var(--rust);
+  color: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex: none;
+  transition: transform 140ms ease;
+}
+
+.routing-cancel-btn:active {
+  transform: scale(0.92);
+}
+
+.routing-cancel-btn .material-symbols-outlined {
+  font-size: 20px;
+}
+
 .leaflet-routing-close {
   position: static;
   background: var(--paper-dim);

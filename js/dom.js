@@ -1,10 +1,11 @@
 export const dom = {
   menu: document.getElementById("menu"),
+  searchForm: document.getElementById("searchForm"),
   searchInput: document.getElementById("searchInput"),
   searchBtn: document.getElementById("searchBtn"),
   locateBtn: document.getElementById("locateBtn"),
-  cancelRouteBtn: document.getElementById("cancelRouteBtn"),
   loadingScreen: document.getElementById("loadingScreen"),
+  cafeSearchForm: document.getElementById("cafeSearchForm"),
   cafeSearchInput: document.getElementById("cafeSearchInput"),
   cafeList: document.getElementById("cafeList"),
   sheet: document.getElementById("sheet"),
