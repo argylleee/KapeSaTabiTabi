@@ -56,6 +56,15 @@ export function routeTo(lat, lon) {
       console.error("Routing error:", e);
       alert("Could not calculate route. Distance might be too far or no route available.");
     })
+    .on("routesfound", () => {
+      // The distance/duration summary text only exists once a route has
+      // actually come back from OSRM — setting up the sticky-summary badge
+      // on the fixed 300ms timeout below raced that network response and
+      // silently no-op'd (its header-not-found guard skipped creating the
+      // badge at all) whenever the route took longer than 300ms to arrive.
+      const container = document.querySelector(".leaflet-routing-container");
+      if (container) setupStickySummary(container);
+    })
     .addTo(map);
 
   refreshMarkerColors();
@@ -70,7 +79,6 @@ export function routeTo(lat, lon) {
       ensureModeToggle(container);
       ensureCancelButton(container);
       ensureCloseButton(container);
-      setupStickySummary(container);
     } else {
       container.classList.add("leaflet-routing-container-hidden");
       ensureFabIcon(container);
@@ -112,8 +120,8 @@ function ensureCancelButton(container) {
   if (right.querySelector(".routing-cancel-btn")) return;
   const cancelBtn = document.createElement("button");
   cancelBtn.className = "routing-cancel-btn";
-  cancelBtn.setAttribute("aria-label", "Cancel route");
-  cancelBtn.innerHTML = '<span class="material-symbols-outlined">block</span>';
+  cancelBtn.setAttribute("aria-label", "Unroute");
+  cancelBtn.textContent = "Unroute";
   cancelBtn.onclick = (e) => {
     e.stopPropagation();
     unroute();
