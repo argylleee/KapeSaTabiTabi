@@ -1,0 +1,16 @@
+export const dom = {
+  menu: document.getElementById("menu"),
+  searchInput: document.getElementById("searchInput"),
+  searchBtn: document.getElementById("searchBtn"),
+  locateBtn: document.getElementById("locateBtn"),
+  loadingScreen: document.getElementById("loadingScreen"),
+  cafeSearchInput: document.getElementById("cafeSearchInput"),
+  cafeList: document.getElementById("cafeList"),
+  sheet: document.getElementById("sheet"),
+  sheetGrabber: document.getElementById("sheetGrabber"),
+  sheetTitle: document.getElementById("sheetTitle"),
+  sortBtn: document.getElementById("sortBtn"),
+  sortLabel: document.getElementById("sortLabel"),
+  filterScrollLeft: document.getElementById("filterScrollLeft"),
+  filterScrollRight: document.getElementById("filterScrollRight"),
+};

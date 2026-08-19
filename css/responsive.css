@@ -1,0 +1,74 @@
+/* small phones: tighten the peek height and type a touch */
+@media screen and (max-width: 380px) {
+  :root {
+    --peek-height: 190px;
+  }
+
+  .search-pill input {
+    font-size: var(--text-sm);
+  }
+
+  #filters button {
+    padding: 7px 11px;
+  }
+}
+
+/* landscape phones: keep the sheet from eating the whole screen */
+@media screen and (max-height: 480px) and (orientation: landscape) {
+  :root {
+    --peek-height: 130px;
+    --sheet-max-height: 78vh;
+  }
+}
+
+/* desktop / tablet: sheet becomes a persistent left-docked panel */
+@media screen and (min-width: 900px) {
+  :root {
+    --sheet-max-height: calc(100vh - 32px);
+  }
+
+  .top-stack {
+    left: 16px;
+    right: auto;
+    width: 380px;
+  }
+
+  .sheet {
+    left: 16px;
+    right: auto;
+    bottom: 16px;
+    top: auto;
+    width: 380px;
+    height: calc(100vh - 260px);
+    border-radius: var(--radius-sheet);
+    transform: none;
+    transition: none;
+  }
+
+  .grabber-btn {
+    display: none;
+  }
+
+  footer {
+    bottom: 16px;
+  }
+
+  .sheet.expanded ~ footer,
+  footer {
+    bottom: 16px;
+  }
+
+  footer .credits {
+    display: block;
+  }
+
+  footer .credits p {
+    font-size: var(--text-xs);
+    color: var(--ink-soft);
+  }
+
+  .leaflet-routing-container {
+    left: 412px;
+    right: auto;
+  }
+}

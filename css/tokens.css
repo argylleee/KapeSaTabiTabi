@@ -1,0 +1,37 @@
+:root {
+  /* palette */
+  --ink: #2E1B0F;
+  --ink-soft: #5C4630;
+  --paper: #F3EAD1;
+  --paper-dim: #E8DCC0;
+  --surface: #FFFCF3;
+  --wood: #6B4A32;
+  --marigold: #E0A438;
+  --marigold-deep: #B87F1E;
+  --sage: #4C7A5A;
+  --sage-bg: #E1EBE0;
+  --rust: #B5502F;
+  --rust-bg: #F5E1D6;
+  --line: rgba(46, 27, 15, 0.14);
+  --shadow: 0 18px 40px -20px rgba(46, 27, 15, 0.45);
+  --shadow-lg: 0 -14px 34px -18px rgba(46, 27, 15, 0.4);
+
+  /* type */
+  --font-display: 'Baloo 2', sans-serif;
+  --font-body: 'Be Vietnam Pro', sans-serif;
+
+  --text-xs: 0.72rem;
+  --text-sm: 0.82rem;
+  --text-base: 0.92rem;
+  --text-lg: 1.05rem;
+  --text-xl: 1.3rem;
+
+  /* shape */
+  --radius-pill: 999px;
+  --radius-card: 16px;
+  --radius-sheet: 22px;
+
+  /* layout */
+  --peek-height: 208px;
+  --sheet-max-height: 82vh;
+}

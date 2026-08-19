@@ -6,96 +6,127 @@
   <title>Kape sa Tabi-tabi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <link rel="icon" type="image/png" href="logo only.png" />
+  <link rel="icon" type="image/png" href="images/logo.png" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
-  <link rel="stylesheet" href="style.css" />
+
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/loading.css" />
+  <link rel="stylesheet" href="css/topbar.css" />
+  <link rel="stylesheet" href="css/sheet.css" />
+  <link rel="stylesheet" href="css/leaflet-theme.css" />
+  <link rel="stylesheet" href="css/footer.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
 </head>
 
 <body>
   <div id="loadingScreen" class="loading-screen">
     <div class="loading-container">
-      <img src="with name.png" alt="Kape sa Tabi-tabi" class="loading-logo" />
-      <p class="loading-text">Loading cafés...</p>
+      <img src="images/loading-logo.png" alt="Kape sa Tabi-tabi" class="loading-logo" />
+      <div class="loading-track">
+        <div class="loading-dash"></div>
+        <div class="loading-pin">
+          <span class="material-symbols-outlined">my_location</span>
+        </div>
+      </div>
+      <p class="loading-text">Loading cafés near you…</p>
     </div>
   </div>
 
-  <div id="interface">
-    <header>
-      <aside id="sidebar">
-        <section class="search">
-          <span id="menu" class="material-symbols-outlined">menu</span>
-          <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Search any city or place..."/>
-            <span id="searchBtn" class="material-symbols-outlined">search</span>
-            <span class="divider"></span>
-            <button id="locateBtn" type="button">
-              <span class="material-symbols-outlined">my_location</span>
-            </button>
-          </div>
-        </section>
-        <section class="cafe-search">To:
-          <input type="text" id="cafeSearchInput" placeholder="Search cafés..."/>
-        </section>
-        <section id="cafeList"></section>
-      </aside>
-      <div class="filters-container">
-        <button id="filterScrollLeft" class="filter-scroll-btn left" type="button">
-          <span class="material-symbols-outlined">chevron_left</span>
-        </button>
-        <section id="filters" class="desktop-filters">
-          <button id="Wheelchair" type="button">
-            <span class="material-symbols-outlined">accessible</span>
-            Wheelchair Access
-          </button>
-          <button id="OpenHours" type="button">
-            <span class="material-symbols-outlined">schedule</span>
-            Business Hours
-          </button>
-          <button id="OutdoorSeating" type="button">
-            <span class="material-symbols-outlined">deck</span>
-            Outdoor Seating
-          </button>
-          <button id="Smoking" type="button">
-            <span class="material-symbols-outlined">smoking_rooms</span>
-            Smoking Area
-          </button>
-          <button id="Toilet" type="button">
-            <span class="material-symbols-outlined">wc</span>
-            Toilet Available
-          </button>
-          <button id="Card" type="button">
-            <span class="material-symbols-outlined">payment</span>
-            Accepts Cards
-          </button>
-        </section>
-        <button id="filterScrollRight" class="filter-scroll-btn right" type="button">
-          <span class="material-symbols-outlined">chevron_right</span>
-        </button>
-      </div>
-    </header>
+  <main id="map"></main>
 
-    <footer>
-      <div class="web-title">
-        <h1>Kape sa Tabi-tabi</h1>
-        <p>Your local café finder.</p>
-      </div>
-      <div class="credits">
-        <p>Developed by Aldrei Justin Santua</p>
-      </div>
-    </footer>
+  <div class="top-stack">
+    <section class="search-pill">
+      <button id="menu" type="button" class="icon-btn" aria-label="Toggle café list">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <input type="text" id="searchInput" placeholder="Search any city or place…" />
+      <button id="searchBtn" type="button" class="icon-btn" aria-label="Search">
+        <span class="material-symbols-outlined">search</span>
+      </button>
+      <span class="divider"></span>
+      <button id="locateBtn" type="button" class="icon-btn locate" aria-label="Use my location">
+        <span class="material-symbols-outlined">my_location</span>
+      </button>
+    </section>
 
-    <main id="map"></main>
+    <div class="filters-container">
+      <button id="filterScrollLeft" class="filter-scroll-btn left" type="button" aria-label="Scroll filters left">
+        <span class="material-symbols-outlined">chevron_left</span>
+      </button>
+      <section id="filters">
+        <button id="OpenHours" type="button" data-filter="openHours">
+          <span class="material-symbols-outlined">local_cafe</span>
+          Open now
+        </button>
+        <button id="Wheelchair" type="button" data-filter="wheelchair">
+          <span class="material-symbols-outlined">accessible</span>
+          Wheelchair
+        </button>
+        <button id="OutdoorSeating" type="button" data-filter="outdoorSeating">
+          <span class="material-symbols-outlined">deck</span>
+          Outdoor seating
+        </button>
+        <button id="Toilet" type="button" data-filter="toilet">
+          <span class="material-symbols-outlined">wc</span>
+          Restroom
+        </button>
+        <button id="Card" type="button" data-filter="card">
+          <span class="material-symbols-outlined">payment</span>
+          Accepts cards
+        </button>
+        <button id="TopRated" type="button" data-filter="topRated">
+          <span class="material-symbols-outlined">star</span>
+          Top rated 4.5+
+        </button>
+        <button id="Saved" type="button" data-filter="saved">
+          <span class="material-symbols-outlined">bookmark</span>
+          Saved
+        </button>
+      </section>
+      <button id="filterScrollRight" class="filter-scroll-btn right" type="button" aria-label="Scroll filters right">
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+    </div>
   </div>
+
+  <section id="sheet" class="sheet">
+    <button id="sheetGrabber" class="grabber-btn" type="button" aria-label="Expand or collapse café list">
+      <span class="grabber"></span>
+    </button>
+    <div class="sheet-head">
+      <h2 id="sheetTitle">Cafés nearby</h2>
+      <button id="sortBtn" type="button" class="sort-pill">
+        <span class="material-symbols-outlined">swap_vert</span>
+        <span id="sortLabel">Distance</span>
+      </button>
+    </div>
+    <div class="cafe-search">
+      <span class="material-symbols-outlined">search</span>
+      <input type="text" id="cafeSearchInput" placeholder="Search cafés in this list…" />
+    </div>
+    <section id="cafeList"></section>
+  </section>
+
+  <footer>
+    <div class="web-title">
+      <h1>Kape sa Tabi-tabi</h1>
+      <p>Your local café finder.</p>
+    </div>
+    <div class="credits">
+      <p>Developed by Aldrei Justin Santua</p>
+    </div>
+  </footer>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
-  <script src="app.js"></script>
-
+  <script type="module" src="js/main.js"></script>
 </body>
 
 </html>
