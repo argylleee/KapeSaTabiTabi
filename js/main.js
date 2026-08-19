@@ -4,6 +4,7 @@ import { initFilters } from "./filters.js";
 import { initSort } from "./sort.js";
 import { initSheet } from "./sheet.js";
 import { initSearch } from "./search.js";
+import { initAttributionToggle } from "./attribution.js";
 import "./routing.js"; // attaches window.routeTo/unroute/routeToFromMarker for popup buttons
 
 initMap();
@@ -12,4 +13,5 @@ initFilters();
 initSort();
 initSheet();
 initSearch();
+initAttributionToggle();
 startInitialLocation();

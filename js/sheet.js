@@ -8,7 +8,10 @@ let maxTranslate = 0;
 
 export function initSheet() {
   dom.sheetGrabber.addEventListener("pointerdown", onPointerDown);
-  dom.menu.addEventListener("click", () => toggleSheet());
+  dom.menu.addEventListener("click", () => {
+    toggleSheet(); // mobile: cycles the peek/full height, as before
+    toggleDesktopPanel(); // desktop: this class only means something >=900px (see responsive.css) — a no-op on mobile since no mobile rule reads it
+  });
 
   if (dom.cafeSearchInput) {
     dom.cafeSearchInput.addEventListener("input", (e) => filterCafeCards(e.target.value));
@@ -34,6 +37,10 @@ export function collapseSheet() {
 
 export function expandSheet() {
   toggleSheet(true);
+}
+
+function toggleDesktopPanel() {
+  dom.sheet.classList.toggle("sheet-hidden-desktop");
 }
 
 function onPointerDown(e) {

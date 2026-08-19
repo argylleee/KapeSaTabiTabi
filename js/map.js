@@ -9,7 +9,11 @@ const REROUTE_THRESHOLD_METERS = 25;
 export let map;
 
 export function initMap() {
-  map = L.map("map", { zoomControl: true }).setView([MANILA.lat, MANILA.lon], 14);
+  // zoomControl: false + manual bottomright placement, rather than fighting
+  // Leaflet's default top-left corner with CSS. This has no visual effect on
+  // mobile, which hides the zoom control outright (see responsive.css).
+  map = L.map("map", { zoomControl: false }).setView([MANILA.lat, MANILA.lon], 14);
+  L.control.zoom({ position: "bottomright" }).addTo(map);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap contributors",
