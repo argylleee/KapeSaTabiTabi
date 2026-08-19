@@ -22,7 +22,8 @@
   }
 
   /* open directions panel becomes a full-width bottom sheet, matching the
-     café list, instead of a cramped floating box */
+     café list, instead of a cramped floating box — capped well short of
+     the full screen so it stays a focused overlay, not a takeover */
   .leaflet-routing-container:not(.leaflet-routing-container-hidden) {
     left: 0 !important;
     right: 0 !important;
@@ -30,9 +31,15 @@
     top: auto !important;
     width: 100% !important;
     max-width: 100% !important;
-    max-height: 65vh !important;
+    max-height: min(46vh, 380px) !important;
     border-radius: var(--radius-sheet) var(--radius-sheet) 0 0 !important;
     z-index: 999997 !important;
+  }
+
+  /* the branding footer floats independently of the routing panel and would
+     otherwise sit visually overlapping it; hide it while directions are open */
+  body.routing-open footer {
+    display: none;
   }
 }
 

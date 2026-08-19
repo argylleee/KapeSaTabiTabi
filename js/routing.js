@@ -1,10 +1,30 @@
 import { state } from "./state.js";
 import { map } from "./map.js";
 import { collapseSheet } from "./sheet.js";
+import { refreshMarkerColors } from "./cafes.js";
 
 let isDragging = false;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
+
+// The public OSRM demo (project-osrm.org) only serves a driving profile.
+// Walking uses OpenStreetMap Germany's community-run demo router instead —
+// also free, no key, but a separate (less heavily used) service, so it's
+// worth knowing that's where "walk" mode routes come from if it ever errors.
+const TRAVEL_MODES = {
+  drive: {
+    label: "Driving",
+    icon: "directions_car",
+    serviceUrl: "https://router.project-osrm.org/route/v1",
+    profile: "driving",
+  },
+  walk: {
+    label: "Walking",
+    icon: "directions_walk",
+    serviceUrl: "https://routing.openstreetmap.de/routed-foot/route/v1",
+    profile: "foot",
+  },
+};
 
 function isNarrowViewport() {
   return window.innerWidth < 900;
@@ -18,13 +38,16 @@ export function routeTo(lat, lon) {
 
   const fromLat = state.currentLat ?? 14.5995;
   const fromLon = state.currentLon ?? 120.9842;
+  const mode = TRAVEL_MODES[state.travelMode] || TRAVEL_MODES.drive;
 
   state.routingControl = L.Routing.control({
     waypoints: [L.latLng(fromLat, fromLon), L.latLng(lat, lon)],
     router: L.Routing.osrmv1({
-      serviceUrl: "https://router.project-osrm.org/route/v1",
+      serviceUrl: mode.serviceUrl,
+      profile: mode.profile,
     }),
     show: state.routingDirectionsVisible,
+    createMarker: () => null, // we draw our own start/café pins; LRM's defaults duplicated them
     lineOptions: {
       styles: [{ color: "#E0A438", opacity: 0.9, weight: 5 }],
     },
@@ -35,6 +58,9 @@ export function routeTo(lat, lon) {
     })
     .addTo(map);
 
+  refreshMarkerColors();
+  document.body.classList.toggle("routing-open", state.routingDirectionsVisible);
+
   setTimeout(() => {
     const container = document.querySelector(".leaflet-routing-container");
     if (!container) return;
@@ -42,8 +68,10 @@ export function routeTo(lat, lon) {
     if (state.routingDirectionsVisible) {
       container.classList.remove("leaflet-routing-container-hidden");
       ensureCloseButton(container);
+      ensureModeToggle(container);
     } else {
       container.classList.add("leaflet-routing-container-hidden");
+      ensureFabIcon(container);
     }
 
     if (!container.dataset.clickHandlerAdded) {
@@ -76,6 +104,41 @@ function ensureCloseButton(container) {
   container.appendChild(closeBtn);
 }
 
+function ensureFabIcon(container) {
+  if (container.querySelector(".routing-fab-icon")) return;
+  const icon = document.createElement("span");
+  icon.className = "material-symbols-outlined routing-fab-icon";
+  icon.textContent = "directions";
+  container.appendChild(icon);
+}
+
+function ensureModeToggle(container) {
+  let wrap = container.querySelector(".routing-mode-toggle");
+  if (!wrap) {
+    wrap = document.createElement("div");
+    wrap.className = "routing-mode-toggle";
+    container.appendChild(wrap);
+  }
+  wrap.innerHTML = Object.entries(TRAVEL_MODES)
+    .map(
+      ([key, mode]) =>
+        `<button type="button" data-mode="${key}" class="${state.travelMode === key ? "active" : ""}" aria-label="${mode.label}"><span class="material-symbols-outlined">${mode.icon}</span></button>`
+    )
+    .join("");
+
+  wrap.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const modeKey = btn.dataset.mode;
+      if (state.travelMode === modeKey) return;
+      state.travelMode = modeKey;
+      if (state.lastRoutedLat != null && state.lastRoutedLon != null) {
+        routeTo(state.lastRoutedLat, state.lastRoutedLon);
+      }
+    });
+  });
+}
+
 export function unroute() {
   if (state.routingControl) {
     map.removeControl(state.routingControl);
@@ -94,12 +157,15 @@ export function unroute() {
   document.querySelectorAll(".cafe-card").forEach((c) => c.classList.remove("active"));
 
   if (prevLat != null && prevLon != null) updateRouteButtonState(prevLat, prevLon, false);
+  refreshMarkerColors();
+  document.body.classList.remove("routing-open");
 }
 
 export function toggleRoutingDirections() {
   state.routingDirectionsVisible = !state.routingDirectionsVisible;
 
   if (state.routingDirectionsVisible && isNarrowViewport()) collapseSheet();
+  document.body.classList.toggle("routing-open", state.routingDirectionsVisible);
 
   if (!state.routingControl) return;
 
@@ -109,12 +175,14 @@ export function toggleRoutingDirections() {
     if (container) {
       container.classList.remove("leaflet-routing-container-hidden");
       ensureCloseButton(container);
+      ensureModeToggle(container);
     }
   } else {
     state.routingControl.hide();
     if (container) {
       container.classList.add("leaflet-routing-container-hidden");
       container.querySelector(".leaflet-routing-close")?.remove();
+      ensureFabIcon(container);
     }
   }
 }

@@ -5,6 +5,39 @@ import { isFavorite, toggleFavorite } from "./favorites.js";
 import { haversineMeters, formatDistance } from "./utils.js";
 import { dom } from "./dom.js";
 
+const CAFE_COLOR = "#E0A438"; // marigold — unrouted café
+const CAFE_COLOR_ROUTED = "#4C7A5A"; // sage — the café you're currently routed to
+
+// Leaflet's default marker is a blue teardrop; Leaflet Routing Machine also
+// drops its own blue waypoint markers on the map by default, which used to
+// sit on top of ours and look like a duplicate/mystery pin. Custom-colored
+// pins here (instead of a CSS filter on the default icon, which produced a
+// muddy red rather than the intended marigold) plus disabling LRM's own
+// markers (see routing.js) keeps blue meaning exactly one thing: "you are
+// here."
+function cafeIcon(color) {
+  const svg =
+    `<svg xmlns='http://www.w3.org/2000/svg' width='25' height='41' viewBox='0 0 25 41'>` +
+    `<path d='M12.5 0C5.6 0 0 5.6 0 12.5c0 9.4 12.5 28.5 12.5 28.5s12.5-19.1 12.5-28.5C25 5.6 19.4 0 12.5 0z' fill='${color}'/>` +
+    `<circle cx='12.5' cy='12.5' r='5.5' fill='%23FFFCF3'/>` +
+    `</svg>`;
+  return L.icon({
+    iconUrl: `data:image/svg+xml,${encodeURIComponent(svg)}`,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [0, -36],
+  });
+}
+
+let markerRegistry = []; // { marker, lat, lon } — kept in sync with rendered cafés
+
+export function refreshMarkerColors() {
+  markerRegistry.forEach(({ marker, lat, lon }) => {
+    const routed = state.lastRoutedLat === lat && state.lastRoutedLon === lon;
+    marker.setIcon(cafeIcon(routed ? CAFE_COLOR_ROUTED : CAFE_COLOR));
+  });
+}
+
 // Café data comes from /api/cafes (see api/cafes.js), a Vercel serverless
 // function that holds the Google Places API key server-side. A key embedded
 // here would be readable by anyone who views the page source or the Network
@@ -133,11 +166,11 @@ function renderOne(place, distance) {
   const hoursLine = place.currentOpeningHours ? (isOpen ? "Open now" : "Closed now") : "Hours not available";
   const photoUrl = placePhotoUrl(place);
 
-  const marker = L.marker([lat, lon]).addTo(map);
-  marker._icon?.classList.add("cafe-marker");
-  state.cafeMarkers.push(marker);
-
   const isRouted = state.lastRoutedLat === lat && state.lastRoutedLon === lon;
+
+  const marker = L.marker([lat, lon], { icon: cafeIcon(isRouted ? CAFE_COLOR_ROUTED : CAFE_COLOR) }).addTo(map);
+  state.cafeMarkers.push(marker);
+  markerRegistry.push({ marker, lat, lon });
 
   marker.bindPopup(
     `
@@ -226,6 +259,7 @@ export function filterCafeCards(term) {
 export function clearCafes() {
   state.cafeMarkers.forEach((m) => map.removeLayer(m));
   state.cafeMarkers = [];
+  markerRegistry = [];
 }
 
 function hideLoadingScreen() {

@@ -85,11 +85,6 @@
   color: var(--ink-soft);
 }
 
-/* café markers get a marigold pin instead of Leaflet's default blue */
-.cafe-marker {
-  filter: hue-rotate(140deg) saturate(1.4) brightness(1.05);
-}
-
 /* directions panel (Leaflet Routing Machine) */
 .leaflet-routing-container {
   background: var(--surface);
@@ -130,21 +125,25 @@
   position: fixed !important;
 }
 
-.leaflet-routing-container.leaflet-routing-container-hidden > *:not(.leaflet-routing-close) {
+.leaflet-routing-container.leaflet-routing-container-hidden > *:not(.leaflet-routing-close):not(.routing-fab-icon) {
   display: none;
 }
 
-.leaflet-routing-container.leaflet-routing-container-hidden::before {
-  content: 'directions';
-  font-family: 'Material Symbols Outlined';
-  font-size: 22px;
-  color: var(--paper);
+/* real DOM element rather than a ::before ligature — more reliable, and
+   avoids fighting the header ::before grabber-bar rule below for the same
+   pseudo-element */
+.routing-fab-icon {
+  display: none;
+}
+
+.leaflet-routing-container.leaflet-routing-container-hidden .routing-fab-icon {
   display: flex;
+  position: absolute;
+  inset: 0;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
+  font-size: 24px;
+  color: var(--paper);
   pointer-events: none;
 }
 
@@ -152,7 +151,7 @@
   background: var(--marigold);
 }
 
-.leaflet-routing-container.leaflet-routing-container-hidden:hover::before {
+.leaflet-routing-container.leaflet-routing-container-hidden:hover .routing-fab-icon {
   color: var(--ink);
 }
 
@@ -187,7 +186,7 @@
   display: none !important;
 }
 
-.leaflet-routing-container::before {
+.leaflet-routing-container:not(.leaflet-routing-container-hidden)::before {
   content: "";
   display: block;
   width: 40px;
@@ -197,8 +196,36 @@
   margin: 10px auto 0;
 }
 
-.leaflet-routing-container.leaflet-routing-container-hidden::before {
-  display: none;
+.routing-mode-toggle {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  gap: 4px;
+  z-index: 1001;
+}
+
+.routing-mode-toggle button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--paper-dim);
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.routing-mode-toggle button .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.routing-mode-toggle button.active {
+  background: var(--marigold);
+  color: var(--ink);
 }
 
 .leaflet-routing-header {
@@ -206,7 +233,7 @@
   font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: 700;
-  padding: 10px 40px 10px 16px;
+  padding: 44px 16px 10px;
 }
 
 .leaflet-routing-alternatives {

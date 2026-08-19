@@ -12,6 +12,7 @@ export const state = {
   routingDirectionsVisible: false,
   allPlaces: [],
   sortMode: "distance", // 'distance' | 'rating' | 'open'
+  travelMode: "drive", // 'drive' | 'walk'
 };
 
 export const filterState = {
