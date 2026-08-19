@@ -60,7 +60,6 @@ export function routeTo(lat, lon) {
 
   refreshMarkerColors();
   document.body.classList.toggle("routing-open", state.routingDirectionsVisible);
-  updateCancelButtonVisibility();
 
   setTimeout(() => {
     const container = document.querySelector(".leaflet-routing-container");
