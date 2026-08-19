@@ -64,11 +64,9 @@ module.exports = async function handler(req, res) {
 
     if (!response.ok) {
       // Log the detail server-side; don't echo Google's full error (it can
-      // name the project) back to the browser — TEMP: surfacing just the
-      // short reason code for debugging, remove once this is working.
+      // name the project) back to the browser.
       console.error("Places API error:", response.status, JSON.stringify(data));
-      const reason = data.error?.status || data.error?.details?.[0]?.reason || null;
-      res.status(502).json({ error: "Upstream places lookup failed", googleStatus: response.status, reason });
+      res.status(502).json({ error: "Upstream places lookup failed" });
       return;
     }
 
