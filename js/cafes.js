@@ -177,7 +177,7 @@ function renderOne(place, distance) {
   const saved = isFavorite(place.id);
 
   card.innerHTML = `
-    <div class="cafe-photo" style="${photoUrl ? `background-image:url('${photoUrl}')` : ""}">
+    <div class="cafe-photo${photoUrl ? "" : " no-photo"}" style="${photoUrl ? `background-image:url('${photoUrl}')` : ""}">
       <button type="button" class="favorite-btn${saved ? " saved" : ""}" aria-label="Save café">
         <span class="material-symbols-outlined">favorite</span>
       </button>
@@ -185,7 +185,7 @@ function renderOne(place, distance) {
     <div class="cafe-body">
       <h4>${name}</h4>
       <div class="cafe-meta">
-        ${place.rating ? `<span class="rating"><span class="material-symbols-outlined">star</span>${place.rating.toFixed(1)}</span>` : ""}
+        ${place.rating ? `<span class="rating"><span class="material-symbols-outlined">star</span>${place.rating.toFixed(1)}<span class="rating-count">(${place.userRatingCount || 0})</span></span>` : ""}
         <span>${formatDistance(distance)}</span>
       </div>
       <div class="cafe-tags">${tags.join("")}</div>

@@ -187,27 +187,63 @@
   display: none !important;
 }
 
+.leaflet-routing-container::before {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--line);
+  margin: 10px auto 0;
+}
+
+.leaflet-routing-container.leaflet-routing-container-hidden::before {
+  display: none;
+}
+
 .leaflet-routing-header {
   color: var(--ink);
   font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: 700;
-  padding: 12px 40px 8px 14px;
+  padding: 10px 40px 10px 16px;
 }
 
 .leaflet-routing-alternatives {
   background: var(--surface);
 }
 
+.leaflet-routing-alt table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
 .leaflet-routing-instruction {
   color: var(--ink);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
+  line-height: 1.4;
 }
 
 .leaflet-routing-alt-minimized {
   display: none;
 }
 
+.leaflet-routing-container td {
+  padding: 10px 8px;
+}
+
+.leaflet-routing-container tr {
+  border-bottom: 1px solid var(--line);
+}
+
+.leaflet-routing-container tr:last-child {
+  border-bottom: none;
+}
+
 .leaflet-routing-container tr:hover td {
   background: var(--paper-dim);
+}
+
+.leaflet-routing-icon {
+  filter: sepia(1) saturate(3) hue-rotate(-10deg) brightness(0.9);
 }

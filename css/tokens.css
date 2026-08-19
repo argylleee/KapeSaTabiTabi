@@ -33,5 +33,12 @@
 
   /* layout */
   --peek-height: 208px;
-  --sheet-max-height: 82vh;
+  --topbar-clearance: 168px;
+  --sheet-max-height: calc(100vh - var(--topbar-clearance));
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --sheet-max-height: calc(100dvh - var(--topbar-clearance));
+  }
 }

@@ -1,8 +1,10 @@
 import { state } from "./state.js";
 import { loadCafes } from "./cafes.js";
 import { routeTo } from "./routing.js";
+import { haversineMeters } from "./utils.js";
 
 const MANILA = { lat: 14.5995, lon: 120.9842 };
+const REROUTE_THRESHOLD_METERS = 25;
 
 export let map;
 
@@ -83,15 +85,31 @@ export function startInitialLocation() {
 // tick re-requests the OSRM route from the new position. This keeps the route
 // and ETA current as you walk, but it is not full turn-by-turn progress
 // tracking (no heading, no "next turn in Xm", no off-route detection).
+//
+// GPS fixes jitter by a few meters even while standing still, so re-routing
+// on every single tick made the route line and directions panel visibly
+// flicker. Only re-route once you've actually moved a meaningful distance.
+let lastReroutedLat = null;
+let lastReroutedLon = null;
+
 function startRealTimeTracking() {
   state.watchPositionId = navigator.geolocation.watchPosition(
     (pos) => {
       if (state.isManualPin) return;
-      state.currentLat = pos.coords.latitude;
-      state.currentLon = pos.coords.longitude;
-      if (state.lastRoutedLat && state.lastRoutedLon) {
-        routeTo(state.lastRoutedLat, state.lastRoutedLon);
+      const { latitude, longitude } = pos.coords;
+      state.currentLat = latitude;
+      state.currentLon = longitude;
+
+      if (!state.lastRoutedLat || !state.lastRoutedLon) return;
+
+      if (lastReroutedLat != null) {
+        const moved = haversineMeters(lastReroutedLat, lastReroutedLon, latitude, longitude);
+        if (moved != null && moved < REROUTE_THRESHOLD_METERS) return;
       }
+
+      lastReroutedLat = latitude;
+      lastReroutedLon = longitude;
+      routeTo(state.lastRoutedLat, state.lastRoutedLon);
     },
     () => {},
     { enableHighAccuracy: false, timeout: 10000, maximumAge: 5000 }

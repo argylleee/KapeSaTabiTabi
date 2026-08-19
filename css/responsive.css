@@ -1,3 +1,41 @@
+/* mobile: zoom buttons are redundant with pinch-to-zoom and just clutter
+   a small screen; the directions FAB gets its own strategic spot instead
+   of wherever Leaflet's default top-right control position happens to be */
+@media screen and (max-width: 899px) {
+  .leaflet-control-zoom {
+    display: none;
+  }
+
+  .leaflet-routing-container.leaflet-routing-container-hidden {
+    top: auto !important;
+    left: auto !important;
+    right: 16px !important;
+    bottom: calc(var(--peek-height) + 16px) !important;
+    width: 56px !important;
+    height: 56px !important;
+    max-width: 56px !important;
+    max-height: 56px !important;
+  }
+
+  .leaflet-routing-container.leaflet-routing-container-hidden::before {
+    font-size: 26px;
+  }
+
+  /* open directions panel becomes a full-width bottom sheet, matching the
+     café list, instead of a cramped floating box */
+  .leaflet-routing-container:not(.leaflet-routing-container-hidden) {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 65vh !important;
+    border-radius: var(--radius-sheet) var(--radius-sheet) 0 0 !important;
+    z-index: 999997 !important;
+  }
+}
+
 /* small phones: tighten the peek height and type a touch */
 @media screen and (max-width: 380px) {
   :root {
