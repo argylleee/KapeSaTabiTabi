@@ -1,0 +1,9 @@
+{
+  "name": "kape-sa-tabi-tabi",
+  "private": true,
+  "description": "Serverless API dependencies only — the frontend is plain HTML/CSS/JS with no build step.",
+  "dependencies": {
+    "@upstash/ratelimit": "^2.0.5",
+    "@upstash/redis": "^1.34.3"
+  }
+}

@@ -5,6 +5,8 @@
 // visible in DevTools. A browser-embedded key can't be protected: HTTP
 // referrer restrictions are trivially spoofable (any HTTP client can just
 // set the Referer header), so a leaked key can be used to bill the account.
+const { guard } = require("./_guard.js");
+
 const PLACES_FIELD_MASK = [
   "places.id",
   "places.displayName",
@@ -23,6 +25,8 @@ const PLACES_FIELD_MASK = [
 ].join(",");
 
 module.exports = async function handler(req, res) {
+  if (!(await guard(req, res))) return;
+
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   if (!apiKey) {
     res.status(500).json({ error: "GOOGLE_PLACES_API_KEY is not configured on the server" });

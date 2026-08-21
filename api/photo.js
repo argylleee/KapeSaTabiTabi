@@ -2,7 +2,11 @@
 // key server-side. Building the photo URL client-side (with ?key=... in it)
 // would leak the key via the <img> src / Network tab even if the main
 // search call is otherwise proxied correctly.
+const { guard } = require("./_guard.js");
+
 module.exports = async function handler(req, res) {
+  if (!(await guard(req, res))) return;
+
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   if (!apiKey) {
     res.status(500).json({ error: "GOOGLE_PLACES_API_KEY is not configured on the server" });
